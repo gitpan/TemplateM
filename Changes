@@ -1,0 +1,15 @@
+Revision history for Perl extension template.
+
+1.00 Initial release
+
+1.10 Working with cache ability is added
+
+1.11 Inner method's interface had structured
+
+1.21 New time managment for templates caching. You can set how long
+     template file will be cached before renew. 
+
+	- original version; created by h2xs 1.22 with options
+		-AX -n template -v 1.11
+
+
