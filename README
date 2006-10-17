@@ -1,147 +1,189 @@
-=head1 NAME
+NAME
+    TemplateM - Templates processing module
 
-TemplateM - Templates processing module 
+VERSION
+    Version 2.00 13.10.2006
 
-=head1 VERSION
+SYNOPSIS
+    unshift(@INC,module_directory_absolute_path); require TemplateM;
 
-Version 1.21 
-16.05.2006
+    or:
 
-=head1 SYNOPSIS
-    
-print "Content-type: text/html\n\n";
-unshift(@INC,module_directory_absolute_path);
-require TemplateM;
+    use lib module_directory_absolute_path; # if the module is installed in
+    user's directory use TemplateM;
 
-or 
+  Object $template creation
+    as list:
 
-use lib module_directory_absolute_path;
-use TemplateM; 
+    $template = new TemplateM(template_file,username,user_password,
+    cache_files_absolute_path, timeout, http_header);
 
-=head2 Object $template creation
+    or as implicit hash array (every key of hash array must be forestall the
+    "-" sign):
 
-$template = new TemplateM(template_file,username,user_password, cache_files_absolute_path, timeout);
+    $template = new
+    TemplateM(-file=>'template_file',-user=>'username',-password=>'user_pass
+    word', -cache=>'cache_files_absolute_path', -timeout=>'timeout',
+    -header=>'HTTP_header');
 
-=head2 Update object $template
+    or as reference to hash array or as hash array:
 
-$template->update(template_file,username,user_password, cache_files_absolute_path, timeout);
+    $template = new
+    TemplateM({file=>'template_file',user=>'username',password=>'user_passwo
+    rd', cache=>'cache_files_absolute_path', timeout=>'timeout',
+    header=>'HTTP_header'});
 
-=over 8
+  Update object $template
+    $template->update(template_file, username, user_password,
+    cache_files_absolute_path, timeout, http_header);
 
-=item template_file
+    Method "update" is used like "new" method, but "new" method is more
+    prefer
 
-B<template filename>. The template file have to be located in CGI-script directory or one level up directory. 
-    
-If the module can't able to obtain access to the file, the error message will be evoked. 
+    template_file
+            template filename. The template file have to be located in
+            CGI-script directory or one level up directory.
 
-=item username
+            If the module can't able to obtain access to the file, the error
+            message will be evoked.
 
-B<username> of virtual client. The username have to be present in .htaccess file (or in other Apache's configuration file like .htaccess).
-    
-Set username blank then you don't use HTTP-authorization via Apache. 
+    username
+            username of virtual client. The username have to be present in
+            .htaccess file (or in other Apache's configuration file like
+            .htaccess).
 
-=item user_password
+            Set username blank then you don't use HTTP-authorization via
+            Apache.
 
-B<User password> of virtual client. See L<username>
+    user_password
+            User password of virtual client. See username
 
-=item cache_files_absolute_path
+    cache_files_absolute_path
+            Absolute path to the cache directory. Cache will not be used
+            when this parameter is not presented.
 
-B<Absolute path> to the cache directory. Cache will not be used when this parameter is not presented.
+    timeout Timeout is the period (in seconds) of template's updating delay.
+            Default value is 1200 seconds.
 
-=item timeout
+            if updating delay parameter is "-1" the updating delay will be
+            perpetual
 
-B<Timeout> is the period (in seconds) of template's updating delay. Default value is 1200 seconds
+    HTTP_header
+            HTTP_header is used to send a raw HTTP header before template
+            processing by html method
 
-=back
+  Modification of labels (cgi labels)
+    $template->cast({label=>value, label=>value, ...=>...});
 
-=head2 Modification of labels (cgi labels)
+    or
 
-$template->cast({label=>value, label=>value, ...=>...});
+    $template->cast(label=>value, label=>value, ...=>...);
 
-=over 8
+    label   Label - name will be replaced with appropriate value in tag <!--
+            cgi: label -->
 
-=item label
+    value   Value - Value, which CGI-script sets. Member of label
 
-B<Label> - name will be replaced with appropriate L<value> in tag <!-- cgi: label -->
+  Block labels modification (val labels)
+    $template->cast_loop ("block_name", [{label=>value, label=>value,
+    ...=>...}]);
 
-=item value
+    or
 
-B<Value> - Value, which CGI-script sets. Member of L<label>
+    $template->cast_loop ("block_name", {label=>value, label=>value,
+    ...=>...});
 
-=back
+    or
 
-=head2 Block labels modification (val labels)
+    $template->cast_loop ("block_name", %hash);
 
-$template->cast_loop ("block_name", [{label=>value, label=>value, ...=>...}]);
+    block_name
+            Block_name - Block identification name. The name will be
+            inserted in tags <!-- do: block_name --> and <!-- loop:
+            block_name --> - all content between this tags processes like
+            labels, but the tag will be formed as <!-- val: label -->
 
-=over 8
+  CAST_IF method
+    $template->cast_if('block_name', 'condition');
 
-=item block_name
+    method prints blocks according to the condition.
 
-B<Block_name> - Block identification name. The name will be inserted in tags <!-- do: block_name --> and <!-- loop: block_name --> - all content between this tags processes like labels, but the tag will be formed as <!-- val: label -->
+    if condition is true the if-block will be printed:
 
-=back
+    <!-- if: name --> block content if <!-- end_if: name -->
 
-=head2 Block finalizing
+    and else-block not will be printed.
 
-$template->finalize(block_name);
-    
-Block finalizing uses for not-processed blocks deleting. You need use finalizing every time you use blockes.
+    If the condition is false, vice versa, else-block will be printed and
+    if-block will be passed
 
-=head2 Template finalizing
+    In all of cases names of this blocks must bethe same!
 
-print $template->html || 'Inner error!';
+  Block finalizing
+    $template->finalize(block_name);
 
-The procedure will return formed document after template processing.
+    Block finalizing uses for not-processed blocks deleting. You need use
+    finalizing every time you use blockes.
 
-=head1 DESCRIPTION
+  Template finalizing
+    print $template->html(-header=>'HTTP_header') || 'Inner error!';
 
-The module can be used with SSI directives together, like in this shtml-sample:
-    
-     <html>
-       <!--#include virtual="head.htm"-->
-     <body>
-      <center><!-- cgi: head --><center>
-         <!-- do: BLOCK_P -->
-          <p><!-- val: content --></p>
-         <!-- loop: BLOCK_P -->
-     </body>
-     </html>
+    or
 
-=head1 ENVIRONMENT
+    print $template->html({header=>'HTTP_header'}) || 'Inner error!';
 
-No environment variables are used.
+    or
 
-=head1 SEE ALSO
+    print $template->html('HTTP_header') || 'Inner error!';
 
-perl
+    The procedure will return formed document after template processing. if
+    header is present as argument it will be added at the beginning of
+    template's return.
 
-=head1 DIAGNOSTICS
+DESCRIPTION
+    The module can be used with SSI directives together, like in this
+    shtml-sample:
 
-The usual warnings if it cannot read or write the files involved.
+         <html>
+           <!--#include virtual="head.htm"-->
+         <body>
+          <center><!-- cgi: head --><center>
+             <!-- do: BLOCK_P -->
+              <p><!-- val: content --></p>
+             <!-- loop: BLOCK_P -->
+         </body>
+         </html>
 
-=head1 HISTORY
+ENVIRONMENT
+    No environment variables are used.
 
-1.00 Initial release
+SEE ALSO
+    perl
 
-1.10 Working with cache ability is added
+DIAGNOSTICS
+    The usual warnings if it cannot read or write the files involved.
 
-1.11 Inner method's interface had structured
+HISTORY
+    1.00 Initial release
 
-1.21 New time managment for templates caching. You can set how long
-     template file will be cached before renew. 
+    1.10 Working with cache ability is added
 
-=head1 THANKS
+    1.11 Inner method's interface had structured
 
-Thanks to Andrew Syrba for useful and valuable information 
+    1.21 New time managment for templates caching. You can set how long
+    template file will be cached before renew.
 
-=head1 AUTHOR
+    2.00 - Simultaneous templates using errors is eliminated. - Alternate
+    interface of using methods is added. - Method of conditional
+    representation of template CAST_IF is added.
 
-Lepenkov Sergey (Serz Minus), C<minus@mail333.com>
+THANKS
+    Thanks to Andrew Syrba for useful and valuable information. Thanks to
+    Dmitry Klimov for technical translating.
 
-=head1 COPYRIGHTS
+AUTHOR
+    Lepenkov Sergey (Serz Minus), "minus@mail333.com"
 
-Copyright (C) 1998-2006 D&D Corporation. All Rights Reserved
-
-=cut
+COPYRIGHTS
+    Copyright (C) 1998-2006 D&D Corporation. All Rights Reserved
 

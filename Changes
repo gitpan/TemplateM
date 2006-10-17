@@ -9,6 +9,11 @@ Revision history for Perl extension template.
 1.21 New time managment for templates caching. You can set how long
      template file will be cached before renew. 
 
+2.00 Simultaneous templates using errors is eliminated. - Alternate
+     interface of using methods is added. - Method of conditional
+     representation of template CAST_IF is added.
+
+
 	- original version; created by h2xs 1.22 with options
 		-AX -n template -v 1.11
 
