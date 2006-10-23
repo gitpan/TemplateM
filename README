@@ -2,7 +2,7 @@ NAME
     TemplateM - Templates processing module
 
 VERSION
-    Version 2.00 13.10.2006
+    Version 2.01 23.10.2006
 
 SYNOPSIS
     unshift(@INC,module_directory_absolute_path); require TemplateM;
@@ -176,6 +176,8 @@ HISTORY
     2.00 - Simultaneous templates using errors is eliminated. - Alternate
     interface of using methods is added. - Method of conditional
     representation of template CAST_IF is added.
+
+    2.01 Cache-file access errors corrected
 
 THANKS
     Thanks to Andrew Syrba for useful and valuable information. Thanks to
