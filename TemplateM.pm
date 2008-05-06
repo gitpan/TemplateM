@@ -1,98 +1,219 @@
 package TemplateM;
-require 5.008;
-$VERSION = "2.01";
+require 5.005;
+use strict;
 
 #
-# TemplateM - модуль работы с шаблонами 
+# TemplateM - Templates processing module
 #
-# Version: 2.01 
-# Date   : 23.10.2006
+# Version: 2.20 
+# Date   : 14.04.2008
 #
-
 
 =head1 NAME
 
-TemplateM - Templates processing module 
+TemplateM - *ML templates processing module 
 
 =head1 VERSION
 
-Version 2.01 
-23.10.2006
+Version 2.20 
+
+14 April 2008
 
 =head1 SYNOPSIS
+
+    use TemplateM;
+    use TemplateM 2.20;
+    use TemplateM 'galore';
+    use TemplateM 2.20 'galore';
+
+    $template = new TemplateM(
+        -file => 'template_file',
+        -login => 'user_login',
+        -password => 'user_password',
+        -cache => 'cache_files_absolute_path',
+        -timeout => 'timeout',
+        -header => 'HTTP_header',
+        -template => 'HTTP_content'
+        );
+    my %htm = ( ... );
+    $template = new TemplateM(\%htm);
+
+    # DEFAULT:
+
+    $template->cast({label1=>value1, label2=>value2, ... });
+    my %h = ( ... );
+    $template->cast(\%h);
+
+    $template->cast_loop ("block_label", {label1=>value1, label2=>value2, ... });
+    $template->finalize ("block_label);
     
-unshift(@INC,module_directory_absolute_path);
-require TemplateM;
+    $template->cast_if('block_label', predicate);
 
-or: 
+    # GALORE:
 
-use lib module_directory_absolute_path; # if the module is installed in user's directory
-use TemplateM; 
+    my $block = $template->start('block_label');
 
-=head2 Object $template creation
+    $block->loop(label1 => 'A', label2 => 'B', ... );
 
-as list:
+    $template->stash(label1 => 'value1', label2 => 'value2', ...);
+    $block->stash(label1 => 'value1', ... );
 
-$template = new TemplateM(template_file,username,user_password, cache_files_absolute_path, timeout, http_header);
+    $template->ifelse("ifblock_label", $predicate)
+    $block->ifelse("ifblock_label", $predicate)
 
-or as implicit hash array (every key of hash array must be forestall the "-" sign):
+    $block->output;
 
-$template = new TemplateM(-file=>'template_file',-user=>'username',-password=>'user_password',
-            -cache=>'cache_files_absolute_path', -timeout=>'timeout', -header=>'HTTP_header');
+    $block->finish;
 
-or as reference to hash array or as hash array:
+    $template->output;
+    $template->html("Content-type: text/html\n\n");
 
-$template = new TemplateM({file=>'template_file',user=>'username',password=>'user_password',
-            cache=>'cache_files_absolute_path', timeout=>'timeout', header=>'HTTP_header'});
+=head1 ABSTRACT
 
+The TemplateM module means for text templates processing in XML, HTML, TEXT and so on formats. TemplateM is the alternative to most of standard modules, and it can accomplish remote access to template files, has simple syntax, small size and flexibility. Then you use TemplateM, functionality and data are completely separated, this is quality of up-to-date web-projects.
 
-=head2 Update object $template
+=head1 TERMS
 
-$template->update(template_file, username, user_password, cache_files_absolute_path, timeout, http_header);
+=head2 Scheme
 
-Method "update" is used like "new" method, but "new" method is more prefer
+Set of methods prodiving process template's structures.
+
+=head2 Template
+
+File or array of data which represents the set of instructions, directives and tags of markup languages and statistics.
+
+=head2 Directive
+
+Name of structure in a template for substitution. There are a number of directives:
+    
+    cgi, val, do, loop, if, else
+
+=head2 Structure
+
+Structure is the tag or the group of tags in a template which defining a scope of substitution.
+The structure consist of tag <!-- --> and formatted content:
+	
+    DIRECTIVE: LABEL
+
+The structure can be simple or complex. Simple one is like this:
+
+    <!-- cgi: foo -->
+    or
+    <!-- val: bar -->
+
+Complex structure is the group of simple structures which constitutive a "section"
+
+    <!-- do: foo -->
+    ...
+    <!-- loop: foo -->
+
+    even so:
+
+    <!-- if: foo -->
+    ...
+    <!-- endif: foo -->
+    <!-- else: foo -->
+    ...
+    <!-- endelse: foo -->
+
+=head2 Label
+
+This is identifier of structure. E.g. foo, bar, baz
+
+    <!-- cgi: foo -->
+
+=head1 DESCRIPTION
+
+=head2 SCHEMES
+
+While defining use it can specify 2 accessible schemes - galore or default.
+It is not obligatory to point at default scheme.
+
+Default scheme is basic and defines using of basic methods:
+
+C<cast, cast_if, cast_loop, finalize and html>
+
+Default scheme methods is expedient for small-datasize projects.
+
+Galore scheme is the alternative for base scheme and it defines own set of methods:
+
+C<stash, start, loop, finish, ifelse, output and html>
+
+In order to get knowing which of schemes is activated you need to invoke methods either module() or scheme()
+
+    my $module = $template->module;
+    my $module = $template->scheme;
+
+=head2 CONSTRUCTOR
+
+Constructor new() is the principal method independent of selected scheme. Almost simple way to use the constructor is:
+
+    my $template = new TemplateM( -cache => "." );
+
+This invoking takes directive to use template file named index.shtml in current directory and uses the current directory for cache files storage.
+
+Below is the attribute list of constructor:
 
 =over 8
 
-=item template_file
+=item file
 
-B<template filename>. The template file have to be located in CGI-script directory or one level up directory. 
-    
-If the module can't able to obtain access to the file, the error message will be evoked. 
+B<Template filename> is the filename or locations of a template. Supports relative or absolute pathes,
+and also template file locator. Relative path can forestall with ./ prefix or without it.
+Absolute path must be forestall with / prefix. Template file locator is the URI formatted string.
+If the file is missed, it use ``index.shtml' from current directory as default value.
 
-=item username
+=item login and password
 
-B<username> of virtual client. The username have to be present in .htaccess file (or in other Apache's configuration file like .htaccess).
-    
-Set username blank then you don't use HTTP-authorization via Apache. 
+B<User Login> and B<user password> are data for standard HTTP-authorization.
+Login and password will be used when the template defined via locator and when remote access is
+protected by HTTP-authorization of remote server. When user_login is missed the access to remote
+template file realizes simplified scheme, without basic HTTP-authorization.
 
-=item user_password
+=item cache
 
-B<User password> of virtual client. See L<username>
-
-=item cache_files_absolute_path
-
-B<Absolute path> to the cache directory. Cache will not be used when this parameter is not presented.
+B<Cache> is the absolute or relative path to directory for cache files storage. This directory needs to have a permission to read and write files.
+When B<cache> is missed caching is disabled. Caching on is recommended for faster module operations.
 
 =item timeout
 
-B<Timeout> is the period (in seconds) of template's updating delay. Default value is 1200 seconds.
+B<Timeout> is the period of cache file keeping in integer seconds.
+When the value is missed cache file "compiles" once and will be used as template.
+Positive value has an effect only then template file is dynamic and it changes in time.
+Previous versions of the module sets value 20 instead 0 by default.
+It had to set the value -1 for "compilation" disabling.
+For current version of the module value can be 0 or every positive number. 0 is
+equivalent -1 of previous versions of the module.
 
-if updating delay parameter is "-1" the updating delay will be perpetual
+=item header
 
-=item HTTP_header
+B<HTTP header> uses as value by default before main content template print.
 
-B<HTTP_header> is used to send a raw HTTP header before template processing by html method
+    my $template = new TemplateM( -header => "Content-type: text/html; charset=UTF-8\n\n");
+    print $template->html;
+
+=item template
+
+B<HTTP content> (template). This attribute has to be defined when template content is not
+able to get from a file or get it from remote locations. E.g. it has to be defined when
+a template selects from a database. Defining of this attribute means disabling of
+precompile result caching! 
 
 =back
 
-=head2 Modification of labels (cgi labels)
+=head2 DEFAULT SCHEME METHODS (BASIC METHODS) 
 
-$template->cast({label=>value, label=>value, ...=>...});
+It is enough to define the module without parameters for using of basic methods.
 
-or
+    use TemplateM;
 
-$template->cast(label=>value, label=>value, ...=>...);
+After that only basic metods will be automatically enabled.
+
+=head3 cast
+
+Modification of labels (cgi labels)
+
+    $template->cast({label1=>value1, label2=>value2, ... });
 
 =over 8
 
@@ -106,87 +227,150 @@ B<Value> - Value, which CGI-script sets. Member of L<label>
 
 =back
 
-=head2 Block labels modification (val labels)
+=head3 cast_loop
 
-$template->cast_loop ("block_name", [{label=>value, label=>value, ...=>...}]);
+Block labels modification (val labels)
 
-or
-
-$template->cast_loop ("block_name", {label=>value, label=>value, ...=>...});
-
-or
-
-$template->cast_loop ("block_name", %hash);
+    $template->cast_loop (block_label, {label1=>value1, label2=>value2, ... }]);
 
 =over 8
 
-=item block_name
+=item block_label
 
-B<Block_name> - Block identification name. The name will be inserted in tags <!-- do: block_name --> and <!-- loop: block_name --> - all content between this tags processes like labels, but the tag will be formed as <!-- val: label -->
+B<Block label> - Block identification name.
+The name will be inserted in tags <!-- do: block_label --> and <!-- loop: block_label --> - all content
+between this tags processes like labels, but the tag will be formed as <!-- val: label -->
 
 =back
 
+=head3 finalize
 
-=head2 CAST_IF method
+Block finalizing
 
-$template->cast_if('block_name', 'condition');
-
-method prints blocks according to the condition.
-
-if condition is true the if-block will be printed:
-
-<!-- if: name -->
-    block content if
-<!-- end_if: name -->
-
-and else-block not will be printed.
-
-If the condition is false,  vice versa, else-block will be printed and if-block will be passed
-
-In all of cases names of this blocks must bethe same!
-
-=head2 Block finalizing
-
-$template->finalize(block_name);
+    $template->finalize(block_label);
     
 Block finalizing uses for not-processed blocks deleting. You need use finalizing every time you use blockes.
 
-=head2 Template finalizing
+=head3 cast_if
 
-print $template->html(-header=>'HTTP_header') || 'Inner error!';
+    $template->cast_if(ifblock_label, predicate);
 
-or
+Method analyses boolean value of predicate. If value is true, the method prints if-structure content only.
 
-print $template->html({header=>'HTTP_header'}) || 'Inner error!';
+    <!-- if: label -->
+        ... blah blah blah ...
+    <!-- end_if: label -->
 
-or
+otherwise the method prints else-structure content only.
 
-print $template->html('HTTP_header') || 'Inner error!';
+    <!-- else: label -->
+        ... blah blah blah ...
+    <!-- end_else: label -->
+
+=head3 html
+
+Template finalizing
+
+    print $template->html(-header=>HTTP_header);
+    print $template->html(HTTP_header);
+    print $template->html;
 
 The procedure will return formed document after template processing.
 if header is present as argument it will be added at the beginning of template's return.
 
-=head1 DESCRIPTION
+=head2 GALORE SCHEME METHODS
+
+It is enough to define the module with parameter 'galore' for using of galore scheme methods.
+
+    use TemplateM 'galore';
+
+=head3 stash
+
+stash (or cast) method is the function of import variables value into template.
+
+    $template->stash(title => 'PI' , pi => 3.1415926);
+
+This example demonstrate how all of <!-- cgi: title --> and <!-- cgi: pi --> structures
+will be replaced by parameters of stash method invoking.
+
+In contrast to default scheme, in galore scheme stash method process directives <!-- cgi: label --> only
+with defined labels when invoking, whereas cast method of default scheme precess all of
+directives <!-- cgi: label --> in template!
+
+=head3 start and finish
+
+Start method defines the beginning of loop, and finish method defines the end.
+Start method returns reference to the subtemplate object, that is all between do and loop directives.
+
+    <!-- do: block_label -->
+        ... blah blah blah ...
+            <!-- val: label1 -->
+            <!-- val: label2 -->
+            <!-- cgi: label -->
+        ... blah blah blah ...
+    <!-- loop: block_label -->
+
+    my $block = $template->start(block_label);
+    ...
+    $block->finish;
+
+For acces to val directives it is necessary to use loop method, and for access to cgi directives use stash method.
+
+=head3 loop
+
+The method takes as parameters a hash of arguments or a reference to this hash.
+
+    $block->loop(label1 => 'A', label2 => 'B');
+    $block->loop({label1 => 'A', label2 => 'B'});
+
+Stash method also can be invoked in $block object context.
+
+    $block->stash(label => 3.1415926);
+
+=head3 ifelse
+
+    $template->ifelse("ifblock_label", $predicate)
+    $block->ifelse("ifblock_label", $predicate)
+
+Method is equal to cast_if method of default scheme. The difference, ifelse method
+can be processed with $template or $block, whereas cast_if method has deal with $template object.
+
+=head3 output
+
+The method returns result of template processing. Output method has deal with $template and $block object:
+
+    $block->output;
+    $template->output;
+
+=head3 html
+
+The method is completely equal to html method of default scheme.
+
+=head2 TEMPLATEM'S AND SSI DIRECTIVES
 
 The module can be used with SSI directives together, like in this shtml-sample:
     
-     <html>
-       <!--#include virtual="head.htm"-->
-     <body>
-      <center><!-- cgi: head --><center>
-         <!-- do: BLOCK_P -->
-          <p><!-- val: content --></p>
-         <!-- loop: BLOCK_P -->
-     </body>
-     </html>
+    <html>
+        <!--#include virtual="head.htm"-->
+    <body>
+        <center><!-- cgi: head --><center>
+        <!-- do: BLOCK_P -->
+            <p><!-- val: content --></p>
+        <!-- loop: BLOCK_P -->
+    </body>
+    </html>
 
 =head1 ENVIRONMENT
 
 No environment variables are used.
 
+=head1 BUGS
+
+Please report them.
+
 =head1 SEE ALSO
 
-perl
+LWP, CGI
 
 =head1 DIAGNOSTICS
 
@@ -200,21 +384,32 @@ The usual warnings if it cannot read or write the files involved.
 
 1.11 Inner method's interface had structured
 
-1.21 New time managment for templates caching. You can set how long
-     template file will be cached before renew. 
+1.21 New time managment for templates caching. You can set how long template file will be cached before renew. 
 
-2.00 - Simultaneous templates using errors is eliminated.
-     - Alternate interface of using methods is added.
-     - Method of conditional representation of template CAST_IF is added.
+2.00 New abilities
 
-2.01 
+    * Simultaneous templates using errors is eliminated.
+    * Alternate interface of using methods is added.
+    * Method of conditional representation of template CAST_IF is added.
 
+2.01 Cache-file access errors corrected
+
+2.20 Module structure has rebuilt and changes has done
+
+    * galore scheme added
+    * update method deleted and constructor interface changed
+    * errors of cachefile compiling was corrected
+      (prefix is deleted, CRLF consecution output is corrected)
+    * UTF-8 codepage for templates added
+    * mod_perl 1.00 and 2.00 support added
+
+=head1 TODO
+
+    * simultaneous multiple declared do-loop structure blocks processing.
 
 =head1 THANKS
 
-Thanks to Andrew Syrba for useful and valuable information.
-
-Thanks to Dmitry Klimov for technical translating.
+Thanks to Dmitry Klimov for technical translating C<http://fla-master.com>.
 
 =head1 AUTHOR
 
@@ -222,374 +417,309 @@ Lepenkov Sergey (Serz Minus), C<minus@mail333.com>
 
 =head1 COPYRIGHTS
 
-Copyright (C) 1998-2006 D&D Corporation. All Rights Reserved
+Copyright (C) 1998-2008 D&D Corporation. All Rights Reserved
 
 =cut
 
-my $self;  
 
-BEGIN {
-  use LWP::Simple;
-  use HTTP::Request;
-  use LWP::UserAgent;
-  use HTTP::Headers;
+use vars qw($VERSION);
+our $VERSION = 2.20;
+our @ISA;
+
+use TemplateM::Util;
+
+use LWP::Simple;
+use HTTP::Request;
+use LWP::UserAgent;
+use HTTP::Headers;
+
+use File::Spec;
+
+# for mod_perl
+my $mpflag = 0;
+if (exists $ENV{MOD_PERL}) {
+    if (exists $ENV{MOD_PERL_API_VERSION} && $ENV{MOD_PERL_API_VERSION} == 2) {
+        $mpflag = 2;
+        require Apache2::Response;
+        require Apache2::RequestRec;
+        require Apache2::RequestUtil;
+        require Apache2::RequestIO;
+        require APR::Pool;
+    } else {
+        $mpflag = 1;
+        require Apache;
+    }
+}
+
+my %modules = (
+        default => "Simple",
+        galore  => "Galore"
+    );
+my $module;
+
+sub import {
+    my ($class, @args) = @_;
+    my $mdl = shift(@args) || 'default';
+    $module = $modules{lc($mdl)} || $modules{default};
+    require "TemplateM/$module.pm";
+    @ISA = ("TemplateM::$module");
 }
 
 sub new {
     my $class = shift;
     my @arg = @_;
     
-    my ($file, $login, $password, $cachedir, $timeout, $header) =
-    _read_attributes ([[FILE,URL],[LOGIN,USER],PASSWORD,[CACHE,CACHEFILE,CASH],[TIMEOUT,'TIME',INTERVAL],[HEAD,HEADER]],@arg) if defined $arg[0];
+    # GET Args
+    my ($file, $login, $password, $cachedir, $timeout, $header, $template);
+    ($file, $login, $password, $cachedir, $timeout, $header, $template) = read_attributes(
+        [
+            ['FILE','URL'],
+            ['LOGIN','USER'],
+            'PASSWORD',
+            ['CACHE','CACHEFILE','CACHEDIR'],
+            ['TIMEOUT','TIME','INTERVAL'],
+            ['HEAD','HEADER'],
+            ['TEMPLATE','TPL','TMPL','TPLT','TMPLT','CONTENT']
+        ], @arg ) if defined $arg[0];
     
-    $self = bless {
-            timeout => 0,
-            file => '',
-            login => '',
-            password => '',
-            cachedir => '',
-            template => '',
-            header=>''
-        },$class; # Строим объект
-    
-    $self->{timeout} = $timeout || 1200;     # Таймаут доступа к шаблону (20 минут)
-    $self->{file} = $file || 'index.shtml';  # Имя файла шаблона
-    $self->{login} = $login       || '';     # Логин виртуального клиента 
-    $self->{password} = $password || '';     # Пароль виртуального клиента
-    $self->{cachedir}=$cachedir || '';       # Путь до файлов кэша
-    $self->{header}= $header || '';          # HTTP заголовок, если при выводе он требуется
-    
-    if (&timeout_ok($self->{file},$self->{cachedir})) {     
-      # Файл старый или не указан вообще или его ни разу не записывали!
-      $self->{template}= &geturl($self->{file},$self->{login},$self->{password}); # Принимаем ресурс
-      if ($self->{cachedir}) {               # Указан путь до кэша?
-          if ($self->{template} eq '') {     # Не принялся URL
-            $self->{template}=&load_cache($self->{file},$self->{cachedir});
-          } else {                           # Принялся URL
-            &save_cache($self->{file},$self->{cachedir},$self->{template});
-          }
-      }
-    } else {
-      $self->{template}=&load_cache($self->{file},$self->{cachedir});
-    }
+    # DEFAULTS & BLESS
+    $file ||= 'index.shtml'; # Default
+    my $cache = _get_cachefile($cachedir, $file); # Create cache-filename
 
-    &template_error ("An error occurred while trying to obtain the resource (Ошибка получения ресурса):<br><br><i>".$self->{file}."</i>") unless $self->{template};
-    return $self;
-}
-
-
-sub update {
-    my $self = shift;
-    my @arg = @_;
-    
-    my ($file, $login, $password, $cachedir, $timeout, $header) =
-        _read_attributes ([[FILE,URL],[LOGIN,USER],PASSWORD,[CACHE,CACHEFILE,CASH],[TIMEOUT,'TIME',INTERVAL],[HEAD,HEADER]],@_) if defined $arg[0];
-
-
-    $self->{timeout} = $timeout || 1200;   # Таймаут доступа к шаблону (20 минут)
-    $self->{login} = $login  || '';
-    $self->{password} = $password || '';
-    $self->{cachedir}=$cachedir || '';
-    $self->{file} = $file || 'index.shtml';# Имя файла шаблона
-    $self->{header}= $header || '';          # HTTP заголовок, если при выводе он требуется
-
-    if (&timeout_ok($self->{file},$self->{cachedir})) {     
-      $self->{template}= &geturl($self->{file},$self->{login},$self->{password});
-      if ($self->{cachedir}) {
-        if ($self->{template} eq '') {
-          $self->{template}=&load_cache ($self->{file},$self->{cachedir});
-        } else {                    
-          &save_cache ($self->{file},$self->{cachedir},$self->{template});
+    # If content of template is NULL:
+    unless ($template) {
+        # GET TEMPALTE
+        if ( _timeout_ok($cache, $timeout) ) {     
+            # File is out of date or file is missing or file is new!
+            $template = load_url($file, $login, $password);
+            if ($cache) {
+                # Filename is ok
+                if ($template eq '') {
+                    # if bad -- loacd cache
+                    $template = load_cache($cache);
+                } else {
+                    # Create cache
+                    save_cache($cache, $template);
+              }
+            }
+        } else {
+            $template = load_cache($cache) if $cache;
         }
-      }
-    } else {
-      $self->{template}=&load_cache($self->{file},$self->{cachedir});
     }
 
-    &template_error ("An error occurred while trying to obtain the resource (Ошибка получения ресурса при обновлении):<br><br><i>".$self->{file}."</i>") unless $self->{template};
+    # Error
+    templatem_error("[new] An error occurred while trying to obtain the resource $file") unless $template;
+
+    
+    my $self = bless {
+            timeout  => $timeout  || 0,  
+            file     => $file     || '', 
+            login    => $login    || '', 
+            password => $password || '', 
+            cachedir => $cachedir || '', 
+            cache    => $cache    || '', 
+            template => $template || '', 
+            header   => $header   || '', 
+            module   => $module   || '', 
+            # Galore section
+            work     => $template || '',
+            stackout => '',              # RESULT
+            looparr  => {}               # {LABEL} = result of finish()
+        }, $class;
+    
     return $self;
 }
-
-sub cast {
-    # Модифицируем все значения (cgi:)
-    # my ($self, $hr) = @_;
+sub module {
     my $self = shift;
-    my $hr = $_[0];
-    &template_error("Incorrect call of method \"CAST\"!") unless $hr;
-    unless (ref($hr) eq "HASH") {
-        $hr={@_};
-    }
-    
-    $self->{template}=~s/<!--\s*cgi:\s*(\S+?)\s*-->/_exec_directive($hr, $1)/ieg;
-    return $self->{template};
+    my %hm = reverse %modules;
+    lc($hm{$self->{module}})
 }
-
-sub cast_loop {
-    # Модифицируем блок (do: - loop:)
-    my $self = shift;
-    my $name = shift || '';
-    &template_error("Incorrect call of method \"CAST_LOOP\"!") unless ($name);
-    my $ar = $_[0];
-    
-    if (ref($ar) eq "HASH") {
-       $ar=[$_[0]];
-    } else {
-        $ar = [{@_}] if ref($ar) ne "ARRAY";
-    }
-    
-    $self->{template} =~ m/<!--\s*do:\s*$name\s*-->(.*)<!--\s*loop:\s*$name\s*-->/s;
-    my $pattern = $1 || '';
-    my $pattern_copy = $pattern;
-    my $out;
-    foreach (@{$ar}) {
-      $pattern = $pattern_copy;
-      $pattern =~ s/<!--\s*val:\s*(\S+?)\s*-->/_exec_directive($_,$1)/ieg;
-      $out.=$pattern;
-    }
-   
-    $self->{template} =~ s/(<!--\s*do:\s*$name\s*-->).*(<!--\s*loop:\s*$name\s*-->)/$out$1$pattern_copy$2/s;
-
-    return $self->{template};
-}
-
-sub finalize {
-    # Завершаем блок (do: - loop:)
-    my $self = shift;
-    my $name = shift;
-    &template_error("Incorrect call of method \"FINALIZE\"!") unless ($name);
-    
-    $self->{template} =~ s/<!--\s*do:\s*$name\s*-->.*<!--\s*loop:\s*$name\s*-->//s;
-    return $self->{template};
-}
-
-sub cast_if {
-    my $self = shift;
-    my $name = shift;
-    my $predicate = shift || 0;
-    &template_error("Incorrect call of method \"CAST_IF\"!") unless ($name);
-    
-    if ($predicate) {
-       $self->{template} =~ s/<!--\s*if:\s*$name\s*-->(.*)<!--\s*end_?if:\s*$name\s*-->/$1/s;
-       $self->{template} =~ s/<!--\s*else:\s*$name\s*-->.*<!--\s*end_?else:\s*$name\s*-->//s;
-    } else { 
-       $self->{template} =~ s/<!--\s*else:\s*$name\s*-->(.*)<!--\s*end_?else:\s*$name\s*-->/$1/s;
-       $self->{template} =~ s/<!--\s*if:\s*$name\s*-->.*<!--\s*end_?if:\s*$name\s*-->//s;
-    }
-
-    return $self->{template};
-}
-
-
-sub html {
-    # Выдаем результат на печать
-    my $self = shift;
-    my $header = $self->{header} || '';
-    ($header) = _read_attributes ([[HEAD,HEADER]],@_) if (defined $_[0]);
-    return $header.$self->{template};
-}
-
-sub _exec_directive {
-    # Выполняем внутреннюю директиву
-    my ($hr, $directive) = @_;
-    
-    if (defined($hr->{$directive})) {
-        return $hr->{$directive};
-    } else {
-        return '';
-    }
-}
-
-
-sub geturl {
-  #
-  # Получение ресурса простым или аутентификационным способом в зависимости от аргумента
-  #
+sub scheme { module( @_) }
+sub schema { module( @_) }
+#
+# Internal procedures!
+#
+sub load_url {
+    # 3 MODES. 
+    #  I   - REL. path: (./ or non-preffix)
+    #  II  - ABS. path: (/)
+    #  III - URL. (\w+\/\/)
   
-  # Поддерживаются 3 режима работы. 
-  #   - По пути относительно текуще папки
-  #   - По пути относительно WEB-сервера
-  #   - По адресу внешнего URL
-  
-  my ($file,$login,$password)=@_;
-  my ($url,$html);
+    my $file = shift || '';
+    my $login = shift || '';
+    my $password = shift || '';
 
-  my $hostname = $ENV{HTTP_HOST} || '';
-  my $curent_file = $ENV{SCRIPT_NAME} || '';
-  $curent_file=~m/^\/(.+\/).*/;       
-  my $find = $1 || '';
-  if ($file =~/^\//) {
-    # Файл указан относительно хоста
-    $url='http://'.$hostname.$file;
-  } else {
-    # Файл указан относительно текущего пути
-    $url='http://'.$hostname.'/'.$find.$file;
-  }   
-  if ($file =~/^http\:\/\//) {
-    # Файл указан абсолютным URL
-    $url = $file;
-  }
+    my $url = ''; 
+    my $html = '';
 
+    # address
+    if ($file =~/^\//) {
+        # II
+        $url = _get_uri($file, 0);
+    } elsif ($file =~/^\w+\:\/\//) {
+        # III
+        $url = $file;
+    } else {
+        # I
+        $url = _get_uri($file, 1);
+    }   
 
-  if ($login eq '') {
-    $html=get($url);
-  } else {
-    my $ua = new LWP::UserAgent; 
-    my $req = new HTTP::Request(GET => $url);
-    $req->authorization_basic($login, $password); 
-    my $res=$ua->request($req);
-    $html= $res->is_success?$res->content : '';
-  }
+    # GET DATA
+    if ($login eq '') {
+        $html = get($url);
+    } else {
+        my $ua = new LWP::UserAgent; 
+        my $req = new HTTP::Request(GET => $url);
+        $req->authorization_basic($login, $password); 
+        my $res = $ua->request($req);
+        $html = $res->is_success?$res->content : '';
+    }
 
-return $html;
+    return $html;
 }
 
 sub save_cache {
-    my ($file,$cachedir,$dataarea)=@_;
-    my $ident_path=$file;
-    $ident_path=~s/(\.)|(\/)|(\\)|(:)|(\?)|(\&)|(\%)/_/g;
-    my $filename=$cachedir."/".$ident_path;
-
-    open CACHE, ">$filename" or &template_error ("An error occurred while trying to write in (Ошибка записи файла) <br>$filename");
-      flock CACHE,2; 
-      print CACHE "<!--- CACHE-FILE: $ident_path - ".&current_dt." --->\n\n";
-      print CACHE $dataarea;
+    #
+    # Writing cache
+    #
+    my $cachefile = shift || '';
+    my $dataarea  = shift || '';
+    
+    local *CACHE;
+    open CACHE, ">$cachefile" or templatem_error("[save_cache] An error occurred while trying to write in $cachefile");
+        binmode CACHE;
+        flock CACHE, 2 or templatem_error("[save_cache] An error occurred while blocking in $cachefile"); 
+        print CACHE $dataarea;
     close CACHE;
 }
 
 sub load_cache {
-    my ($file,$cachedir)=@_;
+    #
+    # Load cache
+    #
+    my $cachefile = shift || '';
     my $htmlret='';
-    my $fname;
-    if ($file) { # Файл указан!
-        my $ident_path=$file;
-        $ident_path=~s/(\.)|(\/)|(\\)|(:)|(\?)|(\&)|(\%)/_/g;
-        $fname=$cachedir."/".$ident_path;
-        if (-e "$fname") {
-            open CACHE, "$fname" or &template_error ("An error occurred while trying to read from (Ошибка чтения файла)<br>$fname");
-            flock CACHE,2;
-                while (<CACHE>){
-                   $htmlret.=$_;
-                }
-            close CACHE;
-        }
+ 
+    local *CACHE;
+   
+    if ($cachefile && -e $cachefile) {
+        # File is ok
+        open CACHE, "$cachefile" or templatem_error("[load_cache] An error occurred while trying to read from $cachefile");
+            read(CACHE, $htmlret, -s $cachefile) unless -z $cachefile;
+        close CACHE;
+    } else {
+        # File is missing
+        templatem_error("[load_cache] An error occurred while opening $cachefile");
     }
     
-    &template_error ("An error occurred while trying to obtain the resource (Ошибка получения ресурса)<br><br><i>$file</i><br><br>or read file (или чтения файла)<br><br><i>$fname</i>") unless $htmlret;
-    return $htmlret||'';
+    templatem_error ("File $cachefile is empty") unless $htmlret;
+    
+    return $htmlret;
 }
 
-sub current_dt {
-  # Текущая дата и время строгого формата: DD.MM.YYYY HH.MM.SS
-  my @dt=localtime(time);
-  my $cdt= (($dt[3]>9)?$dt[3]:'0'.$dt[3]).'.'.(($dt[4]+1>9)?$dt[4]+1:'0'.($dt[4]+1)).'.'.($dt[5]+1900)." ".(($dt[2]>9)?$dt[2]:'0'.$dt[2]).":".(($dt[1]>9)?$dt[1]:'0'.$dt[1]).':'.(($dt[0]>9)?$dt[0]:'0'.$dt[0]);
-  return $cdt;
+
+sub templatem_error {
+    #
+    # errors
+    #
+    my $message = shift || 'An error in the module TemplateM';
+    die($message)
+}
+#
+# Internal functions!
+#
+sub _timeout_ok {
+    #
+    # Check file
+    # - 1 - FILE IS OUT OF DATE OR FILE DO NOT EXISTS
+    # - 0 - File is ok
+    #
+    my $cachefile = shift || '';
+    my $timeout   = shift || 0;
+    
+    return 1 unless $cachefile && -e $cachefile; # File do not exists
+
+    my @statfile = stat($cachefile);
+    
+    # Flag is (0) - load cache!
+    return 0 unless $timeout;
+
+    if ((time()-$statfile[9]) > $timeout) {
+        return 1; # File is out of date!
+    } else {
+        return 0; # File is ok!
+    } 
 }
 
-sub template_error {
-my $data_error=shift || 'An error in the module TemplateM!';
+sub _get_cachefile {
+    #
+    # Construct filename
+    #
 
-print $self->{header} || "Content-type: text/html\n\n";
-print <<"HTML";
-  <html>
-    <head>
-      <title>An error in the module TemplateM!</title>
-    </head>
-    <body>
-     <br><br><br><br>
-     <center><h1>
-     
-        $data_error
-     
-     </h1></center>
-    </body>
-  </html>
-HTML
-exit;
-}
-sub timeout_ok {
- my ($file,$cachedir)=@_;
- if ($cachedir and $file) {
-  $file=~s/(\.)|(\/)|(\\)|(:)|(\?)|(\&)|(\%)/_/g;
-  my $path_and_file=$cachedir.'/'.$file;
-  
-  return 1 unless (-e "$path_and_file"); # файла кэша просто нет!
-
-  my @statfile = stat($path_and_file);
-  if ((time-$statfile[9]) > $self->{timeout}) {
-   # Файл слишком стар!
-   return 0 if $self->{timeout} == -1; # Установлен флаг неучитывания времени - постоянно читаем кэш!
-   return 1;
-  } else {
-   # Файл не устарел!
-   return 0;
-  } 
- } else {
-  # Файл не указан, значит он стар!
-  return 1;
- } 
+    my ($dir, $file) = @_;
+    return '' unless $dir;
+    
+    $file=~s/[.\/\\:?&%]/_/g;
+    
+    return File::Spec->catfile($dir,$file)
 }
 
+sub _get_uri {
+    my $file = shift || '';
+    my $tp   = shift || '0';
+    return '' unless $file;
+    #
+    # $tp: 0 - root-dir of server
+    #      1 - rel. path
+    #
+
+    # GET
+    my $request_uri = $ENV{REQUEST_URI} || '';
+    my $hostname    = $ENV{HTTP_HOST}   || '';
+    
+    # for mod_perl
+    my $r;
+    if ($mpflag) {
+        if ($mpflag == 2) {
+            # mod_perl 2
+            eval('$r = Apache2::RequestUtil->request()');
+        } elsif ($mpflag == 1) {
+            # mod_perl 1
+            eval('$r = Apache->request()');
+        }
+        $request_uri = $r->uri();
+        $hostname = $r->hostname();
+    }
+    
+    # parameters
+    $request_uri =~ s/\?.+$//;
+    $request_uri = $1 if $request_uri =~ /^\/(.+\/).*/;
+
+    # set preffix
+    my $url = "http://";
+    
+    # set out
+    if ($tp == 1) {
+        # 1
+        $file =~ s/^\.?\/+//; 
+        $url .= $hostname.'/'.$request_uri.$file;
+    } else {
+        # 0
+        $url .= $hostname.$file;
+    }
+
+    return $url;
+}
 sub AUTOLOAD {
     my $self = shift;
-    if (defined $_[0]) {
-        $self->html(@_ );
-    } else {
-        $self->html();
-    }
+    $self->html(@_)
 }
-
-sub _read_attributes {
-    my($order,@param) = @_;
-    return () unless @param;
-
-    if (ref($param[0]) eq 'HASH') {
-	@param = %{$param[0]};
-    } else {
-        return @param unless (defined($param[0]) && substr($param[0],0,1) eq '-');
-    }
-
-    # map parameters into positional indices
-    my ($i,%pos);
-    $i = 0;
-    foreach (@$order) {
-	foreach (ref($_) eq 'ARRAY' ? @$_ : $_) {
-            $pos{lc($_)} = $i;
-        }
-	$i++;
-    }
-
-    my (@result,%leftover);
-    $#result = $#$order;  # preextend
-    while (@param) {
-	my $key = lc(shift(@param));
-	$key =~ s/^\-//;
-        if (exists $pos{$key}) {
-	    $result[$pos{$key}] = shift(@param);
-	} else {
-	    $leftover{$key} = shift(@param);
-	}
-    }
-
-    push (@result,_make_attributes(\%leftover,1)) if %leftover;
-    @result;
+sub DESTROY {
+    my $self = shift;
+    undef($self);
 }
-
-sub _make_attributes {
-    my $attr = shift;
-    return () unless $attr && ref($attr) && ref($attr) eq 'HASH';
-    my $escape = shift || 0;
-    my(@att);
-    foreach (keys %{$attr}) {
-	my($key) = $_;
-        $key=~s/^\-//;
-	($key="\L$key") =~ tr/_/-/; # parameters are lower case, use dashes
-	my $value = $escape ? $attr->{$_} : $attr->{$_};
-	push(@att,defined($attr->{$_}) ? qq/$key="$value"/ : qq/$key/);
-    }
-    return @att;
-}
-
 
 1;
 
 __END__
+

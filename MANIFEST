@@ -1,6 +1,10 @@
+TemplateM.pm
+TemplateM/Galore.pm
+TemplateM/Simple.pm
+TemplateM/Util.pm
+examples/xmpl1.cgi
 Changes
 Makefile.PL
 MANIFEST
 README
-TemplateM.pm
 t/1.t

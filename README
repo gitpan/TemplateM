@@ -1,164 +1,346 @@
 NAME
-    TemplateM - Templates processing module
+    TemplateM - *ML templates processing module
 
 VERSION
-    Version 2.01 23.10.2006
+    Version 2.20
+
+    14 April 2008
 
 SYNOPSIS
-    unshift(@INC,module_directory_absolute_path); require TemplateM;
+        use TemplateM;
+        use TemplateM 2.20;
+        use TemplateM 'galore';
+        use TemplateM 2.20 'galore';
 
-    or:
+        $template = new TemplateM(
+            -file => 'template_file',
+            -login => 'user_login',
+            -password => 'user_password',
+            -cache => 'cache_files_absolute_path',
+            -timeout => 'timeout',
+            -header => 'HTTP_header',
+            -template => 'HTTP_content'
+            );
+        my %htm = ( ... );
+        $template = new TemplateM(\%htm);
 
-    use lib module_directory_absolute_path; # if the module is installed in
-    user's directory use TemplateM;
+        # DEFAULT:
 
-  Object $template creation
-    as list:
+        $template->cast({label1=>value1, label2=>value2, ... });
+        my %h = ( ... );
+        $template->cast(\%h);
 
-    $template = new TemplateM(template_file,username,user_password,
-    cache_files_absolute_path, timeout, http_header);
+        $template->cast_loop ("block_label", {label1=>value1, label2=>value2, ... });
+        $template->finalize ("block_label);
+    
+        $template->cast_if('block_label', predicate);
 
-    or as implicit hash array (every key of hash array must be forestall the
-    "-" sign):
+        # GALORE:
 
-    $template = new
-    TemplateM(-file=>'template_file',-user=>'username',-password=>'user_pass
-    word', -cache=>'cache_files_absolute_path', -timeout=>'timeout',
-    -header=>'HTTP_header');
+        my $block = $template->start('block_label');
 
-    or as reference to hash array or as hash array:
+        $block->loop(label1 => 'A', label2 => 'B', ... );
 
-    $template = new
-    TemplateM({file=>'template_file',user=>'username',password=>'user_passwo
-    rd', cache=>'cache_files_absolute_path', timeout=>'timeout',
-    header=>'HTTP_header'});
+        $template->stash(label1 => 'value1', label2 => 'value2', ...);
+        $block->stash(label1 => 'value1', ... );
 
-  Update object $template
-    $template->update(template_file, username, user_password,
-    cache_files_absolute_path, timeout, http_header);
+        $template->ifelse("ifblock_label", $predicate)
+        $block->ifelse("ifblock_label", $predicate)
 
-    Method "update" is used like "new" method, but "new" method is more
-    prefer
+        $block->output;
 
-    template_file
-            template filename. The template file have to be located in
-            CGI-script directory or one level up directory.
+        $block->finish;
 
-            If the module can't able to obtain access to the file, the error
-            message will be evoked.
+        $template->output;
+        $template->html("Content-type: text/html\n\n");
 
-    username
-            username of virtual client. The username have to be present in
-            .htaccess file (or in other Apache's configuration file like
-            .htaccess).
+ABSTRACT
+    The TemplateM module means for text templates processing in XML, HTML,
+    TEXT and so on formats. TemplateM is the alternative to most of standard
+    modules, and it can accomplish remote access to template files, has
+    simple syntax, small size and flexibility. Then you use TemplateM,
+    functionality and data are completely separated, this is quality of
+    up-to-date web-projects.
 
-            Set username blank then you don't use HTTP-authorization via
-            Apache.
+TERMS
+  Scheme
+    Set of methods prodiving process template's structures.
 
-    user_password
-            User password of virtual client. See username
+  Template
+    File or array of data which represents the set of instructions,
+    directives and tags of markup languages and statistics.
 
-    cache_files_absolute_path
-            Absolute path to the cache directory. Cache will not be used
-            when this parameter is not presented.
+  Directive
+    Name of structure in a template for substitution. There are a number of
+    directives:
 
-    timeout Timeout is the period (in seconds) of template's updating delay.
-            Default value is 1200 seconds.
+        cgi, val, do, loop, if, else
 
-            if updating delay parameter is "-1" the updating delay will be
-            perpetual
+  Structure
+    Structure is the tag or the group of tags in a template which defining a
+    scope of substitution. The structure consist of tag <!-- --> and
+    formatted content:
 
-    HTTP_header
-            HTTP_header is used to send a raw HTTP header before template
-            processing by html method
+        DIRECTIVE: LABEL
 
-  Modification of labels (cgi labels)
-    $template->cast({label=>value, label=>value, ...=>...});
+    The structure can be simple or complex. Simple one is like this:
 
-    or
+        <!-- cgi: foo -->
+        or
+        <!-- val: bar -->
 
-    $template->cast(label=>value, label=>value, ...=>...);
+    Complex structure is the group of simple structures which constitutive a
+    "section"
+
+        <!-- do: foo -->
+        ...
+        <!-- loop: foo -->
+
+        even so:
+
+        <!-- if: foo -->
+        ...
+        <!-- endif: foo -->
+        <!-- else: foo -->
+        ...
+        <!-- endelse: foo -->
+
+  Label
+    This is identifier of structure. E.g. foo, bar, baz
+
+        <!-- cgi: foo -->
+
+DESCRIPTION
+  SCHEMES
+    While defining use it can specify 2 accessible schemes - galore or
+    default. It is not obligatory to point at default scheme.
+
+    Default scheme is basic and defines using of basic methods:
+
+    "cast, cast_if, cast_loop, finalize and html"
+
+    Default scheme methods is expedient for small-datasize projects.
+
+    Galore scheme is the alternative for base scheme and it defines own set
+    of methods:
+
+    "stash, start, loop, finish, ifelse, output and html"
+
+    In order to get knowing which of schemes is activated you need to invoke
+    methods either module() or scheme()
+
+        my $module = $template->module;
+        my $module = $template->scheme;
+
+  CONSTRUCTOR
+    Constructor new() is the principal method independent of selected
+    scheme. Almost simple way to use the constructor is:
+
+        my $template = new TemplateM( -cache => "." );
+
+    This invoking takes directive to use template file named index.shtml in
+    current directory and uses the current directory for cache files
+    storage.
+
+    Below is the attribute list of constructor:
+
+    file    Template filename is the filename or locations of a template.
+            Supports relative or absolute pathes, and also template file
+            locator. Relative path can forestall with ./ prefix or without
+            it. Absolute path must be forestall with / prefix. Template file
+            locator is the URI formatted string. If the file is missed, it
+            use ``index.shtml' from current directory as default value.
+
+    login and password
+            User Login and user password are data for standard
+            HTTP-authorization. Login and password will be used when the
+            template defined via locator and when remote access is protected
+            by HTTP-authorization of remote server. When user_login is
+            missed the access to remote template file realizes simplified
+            scheme, without basic HTTP-authorization.
+
+    cache   Cache is the absolute or relative path to directory for cache
+            files storage. This directory needs to have a permission to read
+            and write files. When cache is missed caching is disabled.
+            Caching on is recommended for faster module operations.
+
+    timeout Timeout is the period of cache file keeping in integer seconds.
+            When the value is missed cache file "compiles" once and will be
+            used as template. Positive value has an effect only then
+            template file is dynamic and it changes in time. Previous
+            versions of the module sets value 20 instead 0 by default. It
+            had to set the value -1 for "compilation" disabling. For current
+            version of the module value can be 0 or every positive number. 0
+            is equivalent -1 of previous versions of the module.
+
+    header  HTTP header uses as value by default before main content
+            template print.
+
+                my $template = new TemplateM( -header => "Content-type: text/html; charset=UTF-8\n\n");
+                print $template->html;
+
+    template
+            HTTP content (template). This attribute has to be defined when
+            template content is not able to get from a file or get it from
+            remote locations. E.g. it has to be defined when a template
+            selects from a database. Defining of this attribute means
+            disabling of precompile result caching!
+
+  DEFAULT SCHEME METHODS (BASIC METHODS)
+    It is enough to define the module without parameters for using of basic
+    methods.
+
+        use TemplateM;
+
+    After that only basic metods will be automatically enabled.
+
+   cast
+    Modification of labels (cgi labels)
+
+        $template->cast({label1=>value1, label2=>value2, ... });
 
     label   Label - name will be replaced with appropriate value in tag <!--
             cgi: label -->
 
     value   Value - Value, which CGI-script sets. Member of label
 
-  Block labels modification (val labels)
-    $template->cast_loop ("block_name", [{label=>value, label=>value,
-    ...=>...}]);
+   cast_loop
+    Block labels modification (val labels)
 
-    or
+        $template->cast_loop (block_label, {label1=>value1, label2=>value2, ... }]);
 
-    $template->cast_loop ("block_name", {label=>value, label=>value,
-    ...=>...});
-
-    or
-
-    $template->cast_loop ("block_name", %hash);
-
-    block_name
-            Block_name - Block identification name. The name will be
-            inserted in tags <!-- do: block_name --> and <!-- loop:
-            block_name --> - all content between this tags processes like
+    block_label
+            Block label - Block identification name. The name will be
+            inserted in tags <!-- do: block_label --> and <!-- loop:
+            block_label --> - all content between this tags processes like
             labels, but the tag will be formed as <!-- val: label -->
 
-  CAST_IF method
-    $template->cast_if('block_name', 'condition');
+   finalize
+    Block finalizing
 
-    method prints blocks according to the condition.
-
-    if condition is true the if-block will be printed:
-
-    <!-- if: name --> block content if <!-- end_if: name -->
-
-    and else-block not will be printed.
-
-    If the condition is false, vice versa, else-block will be printed and
-    if-block will be passed
-
-    In all of cases names of this blocks must bethe same!
-
-  Block finalizing
-    $template->finalize(block_name);
-
+        $template->finalize(block_label);
+    
     Block finalizing uses for not-processed blocks deleting. You need use
     finalizing every time you use blockes.
 
-  Template finalizing
-    print $template->html(-header=>'HTTP_header') || 'Inner error!';
+   cast_if
+        $template->cast_if(ifblock_label, predicate);
 
-    or
+    Method analyses boolean value of predicate. If value is true, the method
+    prints if-structure content only.
 
-    print $template->html({header=>'HTTP_header'}) || 'Inner error!';
+        <!-- if: label -->
+            ... blah blah blah ...
+        <!-- end_if: label -->
 
-    or
+    otherwise the method prints else-structure content only.
 
-    print $template->html('HTTP_header') || 'Inner error!';
+        <!-- else: label -->
+            ... blah blah blah ...
+        <!-- end_else: label -->
+
+   html
+    Template finalizing
+
+        print $template->html(-header=>HTTP_header);
+        print $template->html(HTTP_header);
+        print $template->html;
 
     The procedure will return formed document after template processing. if
     header is present as argument it will be added at the beginning of
     template's return.
 
-DESCRIPTION
+  GALORE SCHEME METHODS
+    It is enough to define the module with parameter 'galore' for using of
+    galore scheme methods.
+
+        use TemplateM 'galore';
+
+   stash
+    stash (or cast) method is the function of import variables value into
+    template.
+
+        $template->stash(title => 'PI' , pi => 3.1415926);
+
+    This example demonstrate how all of <!-- cgi: title --> and <!-- cgi: pi
+    --> structures will be replaced by parameters of stash method invoking.
+
+    In contrast to default scheme, in galore scheme stash method process
+    directives <!-- cgi: label --> only with defined labels when invoking,
+    whereas cast method of default scheme precess all of directives <!--
+    cgi: label --> in template!
+
+   start and finish
+    Start method defines the beginning of loop, and finish method defines
+    the end. Start method returns reference to the subtemplate object, that
+    is all between do and loop directives.
+
+        <!-- do: block_label -->
+            ... blah blah blah ...
+                <!-- val: label1 -->
+                <!-- val: label2 -->
+                <!-- cgi: label -->
+            ... blah blah blah ...
+        <!-- loop: block_label -->
+
+        my $block = $template->start(block_label);
+        ...
+        $block->finish;
+
+    For acces to val directives it is necessary to use loop method, and for
+    access to cgi directives use stash method.
+
+   loop
+    The method takes as parameters a hash of arguments or a reference to
+    this hash.
+
+        $block->loop(label1 => 'A', label2 => 'B');
+        $block->loop({label1 => 'A', label2 => 'B'});
+
+    Stash method also can be invoked in $block object context.
+
+        $block->stash(label => 3.1415926);
+
+   ifelse
+        $template->ifelse("ifblock_label", $predicate)
+        $block->ifelse("ifblock_label", $predicate)
+
+    Method is equal to cast_if method of default scheme. The difference,
+    ifelse method can be processed with $template or $block, whereas cast_if
+    method has deal with $template object.
+
+   output
+    The method returns result of template processing. Output method has deal
+    with $template and $block object:
+
+        $block->output;
+        $template->output;
+
+   html
+    The method is completely equal to html method of default scheme.
+
+  TEMPLATEM'S AND SSI DIRECTIVES
     The module can be used with SSI directives together, like in this
     shtml-sample:
 
-         <html>
-           <!--#include virtual="head.htm"-->
-         <body>
-          <center><!-- cgi: head --><center>
-             <!-- do: BLOCK_P -->
-              <p><!-- val: content --></p>
-             <!-- loop: BLOCK_P -->
-         </body>
-         </html>
+        <html>
+            <!--#include virtual="head.htm"-->
+        <body>
+            <center><!-- cgi: head --><center>
+            <!-- do: BLOCK_P -->
+                <p><!-- val: content --></p>
+            <!-- loop: BLOCK_P -->
+        </body>
+        </html>
 
 ENVIRONMENT
     No environment variables are used.
 
+BUGS
+    Please report them.
+
 SEE ALSO
-    perl
+    LWP, CGI
 
 DIAGNOSTICS
     The usual warnings if it cannot read or write the files involved.
@@ -173,19 +355,33 @@ HISTORY
     1.21 New time managment for templates caching. You can set how long
     template file will be cached before renew.
 
-    2.00 - Simultaneous templates using errors is eliminated. - Alternate
-    interface of using methods is added. - Method of conditional
-    representation of template CAST_IF is added.
+    2.00 New abilities
+
+        * Simultaneous templates using errors is eliminated.
+        * Alternate interface of using methods is added.
+        * Method of conditional representation of template CAST_IF is added.
 
     2.01 Cache-file access errors corrected
 
+    2.20 Module structure has rebuilt and changes has done
+
+        * galore scheme added
+        * update method deleted and constructor interface changed
+        * errors of cachefile compiling was corrected
+          (prefix is deleted, CRLF consecution output is corrected)
+        * UTF-8 codepage for templates added
+        * mod_perl 1.00 and 2.00 support added
+
+TODO
+        * simultaneous multiple declared do-loop structure blocks processing.
+
 THANKS
-    Thanks to Andrew Syrba for useful and valuable information. Thanks to
-    Dmitry Klimov for technical translating.
+    Thanks to Dmitry Klimov for technical translating
+    "http://fla-master.com".
 
 AUTHOR
     Lepenkov Sergey (Serz Minus), "minus@mail333.com"
 
 COPYRIGHTS
-    Copyright (C) 1998-2006 D&D Corporation. All Rights Reserved
+    Copyright (C) 1998-2008 D&D Corporation. All Rights Reserved
 

@@ -7,16 +7,21 @@ Revision history for Perl extension template.
 1.11 Inner method's interface had structured
 
 1.21 New time managment for templates caching. You can set how long
-     template file will be cached before renew. 
+     template file will be cached before renew.
 
-2.00 Simultaneous templates using errors is eliminated. - Alternate
-     interface of using methods is added. - Method of conditional
-     representation of template CAST_IF is added.
+2.00 New abilities
+
+     * Simultaneous templates using errors is eliminated.
+     * Alternate interface of using methods is added.
+     * Method of conditional representation of template CAST_IF is added.
 
 2.01 Cache-file access errors corrected
 
+2.20 Module structure has rebuilt and changes has done
 
-	- original version; created by h2xs 1.22 with options
-		-AX -n template -v 1.11
-
-
+     * galore scheme added
+     * update method deleted and constructor interface changed
+     * errors of cachefile compiling was corrected
+       (prefix is deleted, CRLF consecution output is corrected)
+     * UTF-8 codepage for templates added
+     * mod_perl 1.00 and 2.00 support added
