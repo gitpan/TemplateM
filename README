@@ -2,15 +2,15 @@ NAME
     TemplateM - *ML templates processing module
 
 VERSION
-    Version 2.20
+    Version 2.21
 
-    14 April 2008
+    06 May 2008
 
 SYNOPSIS
         use TemplateM;
-        use TemplateM 2.20;
+        use TemplateM 2.21;
         use TemplateM 'galore';
-        use TemplateM 2.20 'galore';
+        use TemplateM 2.21 'galore';
 
         $template = new TemplateM(
             -file => 'template_file',
@@ -131,6 +131,11 @@ DESCRIPTION
 
         my $module = $template->module;
         my $module = $template->scheme;
+
+    In order to get know real module name of the used scheme it's enough to
+    read property 'module' of $template object
+
+        my $module = $template->{module};
 
   CONSTRUCTOR
     Constructor new() is the principal method independent of selected
@@ -371,6 +376,8 @@ HISTORY
           (prefix is deleted, CRLF consecution output is corrected)
         * UTF-8 codepage for templates added
         * mod_perl 1.00 and 2.00 support added
+
+    2.21 Mass data processing error under MS Windows is corrected
 
 TODO
         * simultaneous multiple declared do-loop structure blocks processing.

@@ -1,5 +1,6 @@
 TemplateM.pm
 TemplateM/Galore.pm
+TemplateM/GaloreWin32.pm
 TemplateM/Simple.pm
 TemplateM/Util.pm
 examples/xmpl1.cgi

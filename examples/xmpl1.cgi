@@ -2,7 +2,7 @@
 
 use strict;
 
-use TemplateM 2.20 'galore';
+use TemplateM 2.21 'galore';
 use CGI;
 my $q = new CGI;
 

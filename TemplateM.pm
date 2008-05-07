@@ -5,8 +5,8 @@ use strict;
 #
 # TemplateM - Templates processing module
 #
-# Version: 2.20 
-# Date   : 14.04.2008
+# Version: 2.21 
+# Date   : 06.05.2008
 #
 
 =head1 NAME
@@ -15,16 +15,16 @@ TemplateM - *ML templates processing module
 
 =head1 VERSION
 
-Version 2.20 
+Version 2.21 
 
-14 April 2008
+06 May 2008
 
 =head1 SYNOPSIS
 
     use TemplateM;
-    use TemplateM 2.20;
+    use TemplateM 2.21;
     use TemplateM 'galore';
-    use TemplateM 2.20 'galore';
+    use TemplateM 2.21 'galore';
 
     $template = new TemplateM(
         -file => 'template_file',
@@ -143,6 +143,10 @@ In order to get knowing which of schemes is activated you need to invoke methods
 
     my $module = $template->module;
     my $module = $template->scheme;
+
+In order to get know real module name of the used scheme it's enough to read property 'module' of $template object
+
+    my $module = $template->{module};
 
 =head2 CONSTRUCTOR
 
@@ -403,6 +407,8 @@ The usual warnings if it cannot read or write the files involved.
     * UTF-8 codepage for templates added
     * mod_perl 1.00 and 2.00 support added
 
+2.21 Mass data processing error under MS Windows is corrected
+
 =head1 TODO
 
     * simultaneous multiple declared do-loop structure blocks processing.
@@ -421,9 +427,8 @@ Copyright (C) 1998-2008 D&D Corporation. All Rights Reserved
 
 =cut
 
-
 use vars qw($VERSION);
-our $VERSION = 2.20;
+our $VERSION = 2.21;
 our @ISA;
 
 use TemplateM::Util;
@@ -435,7 +440,6 @@ use HTTP::Headers;
 
 use File::Spec;
 
-# for mod_perl
 my $mpflag = 0;
 if (exists $ENV{MOD_PERL}) {
     if (exists $ENV{MOD_PERL_API_VERSION} && $ENV{MOD_PERL_API_VERSION} == 2) {
@@ -451,9 +455,10 @@ if (exists $ENV{MOD_PERL}) {
     }
 }
 
+my $os = $^O || 'Unix';
 my %modules = (
         default => "Simple",
-        galore  => "Galore"
+        galore  => ($os eq 'MSWin32' or $os eq 'NetWare') ? "GaloreWin32" : "Galore"
     );
 my $module;
 
@@ -483,22 +488,17 @@ sub new {
         ], @arg ) if defined $arg[0];
     
     # DEFAULTS & BLESS
-    $file ||= 'index.shtml'; # Default
-    my $cache = _get_cachefile($cachedir, $file); # Create cache-filename
+    $file ||= 'index.shtml';
+    my $cache = _get_cachefile($cachedir, $file);
 
-    # If content of template is NULL:
+
     unless ($template) {
-        # GET TEMPALTE
         if ( _timeout_ok($cache, $timeout) ) {     
-            # File is out of date or file is missing or file is new!
             $template = load_url($file, $login, $password);
             if ($cache) {
-                # Filename is ok
                 if ($template eq '') {
-                    # if bad -- loacd cache
                     $template = load_cache($cache);
                 } else {
-                    # Create cache
                     save_cache($cache, $template);
               }
             }
@@ -507,24 +507,23 @@ sub new {
         }
     }
 
-    # Error
     templatem_error("[new] An error occurred while trying to obtain the resource $file") unless $template;
 
+    my $stk = $modules{galore} eq "GaloreWin32" ? [] : '';
     
     my $self = bless {
-            timeout  => $timeout  || 0,  
-            file     => $file     || '', 
-            login    => $login    || '', 
-            password => $password || '', 
-            cachedir => $cachedir || '', 
-            cache    => $cache    || '', 
-            template => $template || '', 
-            header   => $header   || '', 
-            module   => $module   || '', 
-            # Galore section
+            timeout  => $timeout  || 0,
+            file     => $file     || '',
+            login    => $login    || '',
+            password => $password || '',
+            cachedir => $cachedir || '',
+            cache    => $cache    || '',
+            template => $template || '',
+            header   => $header   || '',
+            module   => $module   || '',
             work     => $template || '',
-            stackout => '',              # RESULT
-            looparr  => {}               # {LABEL} = result of finish()
+            stackout => $stk,
+            looparr  => {}
         }, $class;
     
     return $self;
@@ -536,35 +535,22 @@ sub module {
 }
 sub scheme { module( @_) }
 sub schema { module( @_) }
-#
-# Internal procedures!
-#
 sub load_url {
-    # 3 MODES. 
-    #  I   - REL. path: (./ or non-preffix)
-    #  II  - ABS. path: (/)
-    #  III - URL. (\w+\/\/)
-  
     my $file = shift || '';
     my $login = shift || '';
     my $password = shift || '';
 
-    my $url = ''; 
+    my $url = '';
     my $html = '';
 
-    # address
     if ($file =~/^\//) {
-        # II
         $url = _get_uri($file, 0);
     } elsif ($file =~/^\w+\:\/\//) {
-        # III
         $url = $file;
     } else {
-        # I
         $url = _get_uri($file, 1);
     }   
 
-    # GET DATA
     if ($login eq '') {
         $html = get($url);
     } else {
@@ -579,9 +565,6 @@ sub load_url {
 }
 
 sub save_cache {
-    #
-    # Writing cache
-    #
     my $cachefile = shift || '';
     my $dataarea  = shift || '';
     
@@ -594,21 +577,17 @@ sub save_cache {
 }
 
 sub load_cache {
-    #
-    # Load cache
-    #
     my $cachefile = shift || '';
     my $htmlret='';
  
     local *CACHE;
    
     if ($cachefile && -e $cachefile) {
-        # File is ok
+
         open CACHE, "$cachefile" or templatem_error("[load_cache] An error occurred while trying to read from $cachefile");
             read(CACHE, $htmlret, -s $cachefile) unless -z $cachefile;
         close CACHE;
     } else {
-        # File is missing
         templatem_error("[load_cache] An error occurred while opening $cachefile");
     }
     
@@ -619,43 +598,27 @@ sub load_cache {
 
 
 sub templatem_error {
-    #
-    # errors
-    #
     my $message = shift || 'An error in the module TemplateM';
     die($message)
 }
-#
-# Internal functions!
-#
 sub _timeout_ok {
-    #
-    # Check file
-    # - 1 - FILE IS OUT OF DATE OR FILE DO NOT EXISTS
-    # - 0 - File is ok
-    #
     my $cachefile = shift || '';
     my $timeout   = shift || 0;
     
-    return 1 unless $cachefile && -e $cachefile; # File do not exists
+    return 1 unless $cachefile && -e $cachefile;
 
     my @statfile = stat($cachefile);
     
-    # Flag is (0) - load cache!
     return 0 unless $timeout;
 
     if ((time()-$statfile[9]) > $timeout) {
-        return 1; # File is out of date!
+        return 1;
     } else {
-        return 0; # File is ok!
+        return 0;
     } 
 }
 
 sub _get_cachefile {
-    #
-    # Construct filename
-    #
-
     my ($dir, $file) = @_;
     return '' unless $dir;
     
@@ -668,16 +631,9 @@ sub _get_uri {
     my $file = shift || '';
     my $tp   = shift || '0';
     return '' unless $file;
-    #
-    # $tp: 0 - root-dir of server
-    #      1 - rel. path
-    #
-
-    # GET
     my $request_uri = $ENV{REQUEST_URI} || '';
     my $hostname    = $ENV{HTTP_HOST}   || '';
     
-    # for mod_perl
     my $r;
     if ($mpflag) {
         if ($mpflag == 2) {
@@ -691,17 +647,13 @@ sub _get_uri {
         $hostname = $r->hostname();
     }
     
-    # parameters
     $request_uri =~ s/\?.+$//;
     $request_uri = $1 if $request_uri =~ /^\/(.+\/).*/;
 
-    # set preffix
     my $url = "http://";
-    
-    # set out
     if ($tp == 1) {
         # 1
-        $file =~ s/^\.?\/+//; 
+        $file =~ s/^\.?\/+//;
         $url .= $hostname.'/'.$request_uri.$file;
     } else {
         # 0

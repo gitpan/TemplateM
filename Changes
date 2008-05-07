@@ -25,3 +25,5 @@ Revision history for Perl extension template.
        (prefix is deleted, CRLF consecution output is corrected)
      * UTF-8 codepage for templates added
      * mod_perl 1.00 and 2.00 support added
+
+2.21 Mass data processing error under MS Windows is corrected

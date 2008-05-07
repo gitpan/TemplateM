@@ -76,17 +76,17 @@
 </p>
 <hr />
 <h1><a name="version">VERSION</a></h1>
-<p>Version 2.20</p>
-<p>14 April 2008</p>
+<p>Version 2.21</p>
+<p>06 May 2008</p>
 <p>
 </p>
 <hr />
 <h1><a name="synopsis">SYNOPSIS</a></h1>
 <pre>
     use TemplateM;
-    use TemplateM 2.20;
+    use TemplateM 2.21;
     use TemplateM 'galore';
-    use TemplateM 2.20 'galore';</pre>
+    use TemplateM 2.21 'galore';</pre>
 <pre>
     $template = new TemplateM(
         -file =&gt; 'template_file',
@@ -206,6 +206,9 @@ It is not obligatory to point at default scheme.</p>
 <pre>
     my $module = $template-&gt;module;
     my $module = $template-&gt;scheme;</pre>
+<p>In order to get know real module name of the used scheme it's enough to read property 'module' of $template object</p>
+<pre>
+    my $module = $template-&gt;{module};</pre>
 <p>
 </p>
 <h2><a name="constructor">CONSTRUCTOR</a></h2>
@@ -468,6 +471,7 @@ can be processed with $template or $block, whereas cast_if method has deal with 
       (prefix is deleted, CRLF consecution output is corrected)
     * UTF-8 codepage for templates added
     * mod_perl 1.00 and 2.00 support added</pre>
+<p>2.21 Mass data processing error under MS Windows is corrected</p>
 <p>
 </p>
 <hr />
