@@ -27,3 +27,5 @@ Revision history for Perl extension template.
      * mod_perl 1.00 and 2.00 support added
 
 2.21 Mass data processing error under MS Windows is corrected
+
+2.22 Files in the distribution package are changed

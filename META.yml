@@ -1,0 +1,15 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         TemplateM
+version:      2.22
+version_from: TemplateM.pm
+installdirs:  perl
+requires:
+    File::Spec:                    0.82
+    HTTP::Headers:                 1
+    HTTP::Request:                 1
+    LWP::Simple:                   1
+    LWP::UserAgent:                1
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.30

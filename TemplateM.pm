@@ -5,8 +5,8 @@ use strict;
 #
 # TemplateM - Templates processing module
 #
-# Version: 2.21 
-# Date   : 06.05.2008
+# Version: 2.22 
+# Date   : 08.05.2008
 #
 
 =head1 NAME
@@ -15,16 +15,16 @@ TemplateM - *ML templates processing module
 
 =head1 VERSION
 
-Version 2.21 
+Version 2.22 
 
-06 May 2008
+08 May 2008
 
 =head1 SYNOPSIS
 
     use TemplateM;
-    use TemplateM 2.21;
+    use TemplateM 2.22;
     use TemplateM 'galore';
-    use TemplateM 2.21 'galore';
+    use TemplateM 2.22 'galore';
 
     $template = new TemplateM(
         -file => 'template_file',
@@ -409,6 +409,8 @@ The usual warnings if it cannot read or write the files involved.
 
 2.21 Mass data processing error under MS Windows is corrected
 
+2.22 Files in the distribution package are changed
+
 =head1 TODO
 
     * simultaneous multiple declared do-loop structure blocks processing.
@@ -428,7 +430,7 @@ Copyright (C) 1998-2008 D&D Corporation. All Rights Reserved
 =cut
 
 use vars qw($VERSION);
-our $VERSION = 2.21;
+our $VERSION = 2.22;
 our @ISA;
 
 use TemplateM::Util;
