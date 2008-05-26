@@ -5,8 +5,8 @@ use strict;
 #
 # TemplateM - Templates processing module
 #
-# Version: 2.22 
-# Date   : 08.05.2008
+# Version: 2.23 
+# Date   : 26.05.2008
 #
 
 =head1 NAME
@@ -15,16 +15,16 @@ TemplateM - *ML templates processing module
 
 =head1 VERSION
 
-Version 2.22 
+Version 2.23 
 
-08 May 2008
+26 May 2008
 
 =head1 SYNOPSIS
 
     use TemplateM;
-    use TemplateM 2.22;
+    use TemplateM 2.23;
     use TemplateM 'galore';
-    use TemplateM 2.22 'galore';
+    use TemplateM 2.23 'galore';
 
     $template = new TemplateM(
         -file => 'template_file',
@@ -411,6 +411,8 @@ The usual warnings if it cannot read or write the files involved.
 
 2.22 Files in the distribution package are changed
 
+2.23 File access errors corrected
+
 =head1 TODO
 
     * simultaneous multiple declared do-loop structure blocks processing.
@@ -430,7 +432,7 @@ Copyright (C) 1998-2008 D&D Corporation. All Rights Reserved
 =cut
 
 use vars qw($VERSION);
-our $VERSION = 2.22;
+our $VERSION = 2.23;
 our @ISA;
 
 use TemplateM::Util;
@@ -554,7 +556,7 @@ sub load_url {
     }   
 
     if ($login eq '') {
-        $html = get($url);
+        $html = get($url) || '';
     } else {
         my $ua = new LWP::UserAgent; 
         my $req = new HTTP::Request(GET => $url);
@@ -650,7 +652,7 @@ sub _get_uri {
     }
     
     $request_uri =~ s/\?.+$//;
-    $request_uri = $1 if $request_uri =~ /^\/(.+\/).*/;
+    $request_uri = ($request_uri =~ /^\/(.+\/).*/ ? $1 : '');
 
     my $url = "http://";
     if ($tp == 1) {

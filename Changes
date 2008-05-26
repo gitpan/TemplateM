@@ -29,3 +29,5 @@ Revision history for Perl extension template.
 2.21 Mass data processing error under MS Windows is corrected
 
 2.22 Files in the distribution package are changed
+
+2.23 File access errors corrected

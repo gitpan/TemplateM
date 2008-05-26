@@ -2,15 +2,15 @@ NAME
     TemplateM - *ML templates processing module
 
 VERSION
-    Version 2.22
+    Version 2.23
 
-    08 May 2008
+    26 May 2008
 
 SYNOPSIS
         use TemplateM;
-        use TemplateM 2.22;
+        use TemplateM 2.23;
         use TemplateM 'galore';
-        use TemplateM 2.22 'galore';
+        use TemplateM 2.23 'galore';
 
         $template = new TemplateM(
             -file => 'template_file',
@@ -380,6 +380,8 @@ HISTORY
     2.21 Mass data processing error under MS Windows is corrected
 
     2.22 Files in the distribution package are changed
+
+    2.23 File access errors corrected
 
 TODO
         * simultaneous multiple declared do-loop structure blocks processing.
