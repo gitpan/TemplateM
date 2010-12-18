@@ -3,10 +3,14 @@ require 5.005;
 use strict;
 
 #
-# TemplateM - Templates processing module
+# TemplateM - *ML templates processing module 
 #
-# Version: 2.23 
-# Date   : 26.05.2008
+# Version: 3.00 
+# Date   : 14.12.2010
+#
+# $Revision: 1.2 $
+#
+# $Id: TemplateM.pm,v 1.2 2010/12/18 17:59:15 abalama Exp $
 #
 
 =head1 NAME
@@ -22,41 +26,33 @@ Version 2.23
 =head1 SYNOPSIS
 
     use TemplateM;
-    use TemplateM 2.23;
+    use TemplateM 3.00;
     use TemplateM 'galore';
-    use TemplateM 2.23 'galore';
+    use TemplateM 3.00 'galore';
 
     $template = new TemplateM(
-        -file => 'template_file',
-        -login => 'user_login',
-        -password => 'user_password',
-        -cache => 'cache_files_absolute_path',
-        -timeout => 'timeout',
-        -header => 'HTTP_header',
-        -template => 'HTTP_content'
+            -file => 'http://localhost/foo.shtml',
+            -utf8 => 1,
         );
-    my %htm = ( ... );
-    $template = new TemplateM(\%htm);
 
     # DEFAULT:
 
-    $template->cast({label1=>value1, label2=>value2, ... });
+    $template->cast({foo => 'value1', bar => 'value2', ... });
     my %h = ( ... );
     $template->cast(\%h);
 
-    $template->cast_loop ("block_label", {label1=>value1, label2=>value2, ... });
+    $template->cast_loop ("block_label", {foo => 'value1', bar => 'value2', ... });
     $template->finalize ("block_label);
-    
-    $template->cast_if('block_label', predicate);
+
+    $template->cast_if('block_label', $predicate);
 
     # GALORE:
 
     my $block = $template->start('block_label');
+    $block->loop(foo => 'value1', bar => 'value2', ... );
 
-    $block->loop(label1 => 'A', label2 => 'B', ... );
-
-    $template->stash(label1 => 'value1', label2 => 'value2', ...);
-    $block->stash(label1 => 'value1', ... );
+    $template->stash(foo => 'value1', bar => 'value2', ...);
+    $block->stash(baz => 'value1', ... );
 
     $template->ifelse("ifblock_label", $predicate)
     $block->ifelse("ifblock_label", $predicate)
@@ -86,13 +82,13 @@ File or array of data which represents the set of instructions, directives and t
 
 Name of structure in a template for substitution. There are a number of directives:
     
-    cgi, val, do, loop, if, else
+    cgi, val, do, loop, if, endif, else, endelse
 
 =head2 Structure
 
 Structure is the tag or the group of tags in a template which defining a scope of substitution.
 The structure consist of tag <!-- --> and formatted content:
-	
+
     DIRECTIVE: LABEL
 
 The structure can be simple or complex. Simple one is like this:
@@ -104,6 +100,8 @@ The structure can be simple or complex. Simple one is like this:
 Complex structure is the group of simple structures which constitutive a "section"
 
     <!-- do: foo -->
+    ...
+        <!-- val: bar -->
     ...
     <!-- loop: foo -->
 
@@ -152,20 +150,38 @@ In order to get know real module name of the used scheme it's enough to read pro
 
 Constructor new() is the principal method independent of selected scheme. Almost simple way to use the constructor is:
 
-    my $template = new TemplateM( -cache => "." );
+    my $template = new TemplateM( -template => "blah-blah-blah" );
 
-This invoking takes directive to use template file named index.shtml in current directory and uses the current directory for cache files storage.
+This invoking takes directive to use simple text as template.
 
 Below is the attribute list of constructor:
 
 =over 8
 
+=item asfile
+
+B<Asfile flag> designates either path or filehandle to file is passed for reading from disk, bypassing 
+the method of remote obtaining of a template.
+
+=item cache
+
+B<Cache> is the absolute or relative path to directory for cache files storage. This directory needs to have a permission to read and write files.
+When B<cache> is missed caching is disabled. Caching on is recommended for faster module operations.
+
 =item file
 
-B<Template filename> is the filename or locations of a template. Supports relative or absolute pathes,
+B<Template filename> is the filename, opened filehandler (GLOB) or locations of a template. 
+Supports relative or absolute pathes,
 and also template file locator. Relative path can forestall with ./ prefix or without it.
 Absolute path must be forestall with / prefix. Template file locator is the URI formatted string.
 If the file is missed, it use ``index.shtml' from current directory as default value.
+
+=item header
+
+B<HTTP header> uses as value by default before main content template print (method html).
+
+    my $template = new TemplateM( -header => "Content-type: text/html; charset=UTF-8\n\n");
+    print $template->html;
 
 =item login and password
 
@@ -174,10 +190,22 @@ Login and password will be used when the template defined via locator and when r
 protected by HTTP-authorization of remote server. When user_login is missed the access to remote
 template file realizes simplified scheme, without basic HTTP-authorization.
 
-=item cache
+=item method
 
-B<Cache> is the absolute or relative path to directory for cache files storage. This directory needs to have a permission to read and write files.
-When B<cache> is missed caching is disabled. Caching on is recommended for faster module operations.
+B<Request method> points to method of remote HTTP/HTTPS access to template page. Can take values: "GET", 
+"HEAD", "PUT" or "POST". HEAD methods can be used only for headers getting.
+
+=item onutf8 or utf8
+
+B<onutf8 flag> turn UTF8 mode for access to a file. The flag allow to get rid of a forced setting utf-8 
+flag for properties template and work by method Encode::_utf8_on() 
+
+=item template
+
+B<HTTP content> (template). This attribute has to be defined when template content is not
+able to get from a file or get it from remote locations. E.g. it has to be defined when
+a template selects from a database. Defining of this attribute means disabling of
+precompile result caching! 
 
 =item timeout
 
@@ -189,19 +217,69 @@ It had to set the value -1 for "compilation" disabling.
 For current version of the module value can be 0 or every positive number. 0 is
 equivalent -1 of previous versions of the module.
 
-=item header
+=item reqcode
 
-B<HTTP header> uses as value by default before main content template print.
+B<Request code> is the pointer to the subroutine must be invoked for HTTP::Request object 
+after creation via method new.
 
-    my $template = new TemplateM( -header => "Content-type: text/html; charset=UTF-8\n\n");
-    print $template->html;
+Sample:
 
-=item template
+    -reqcode => sub { 
+        my $req = shift;
+        ...
+        $req-> ...
+        ...
+        return 1;
+    }
 
-B<HTTP content> (template). This attribute has to be defined when template content is not
-able to get from a file or get it from remote locations. E.g. it has to be defined when
-a template selects from a database. Defining of this attribute means disabling of
-precompile result caching! 
+=item rescode
+
+B<Response code> is the pointer to the subroutine must be invoked for HTTP::Response after 
+creation via calling $ua->request($req).
+
+Sample:
+
+    -rescode => sub { 
+        my $res = shift;
+        ...
+        $res-> ...
+        ...
+        return 1;
+    }      
+
+=item uacode
+
+B<UserAgent code> is the pointer to the subroutine must be invoked for LWP::UserAgent after 
+creation via method new().
+
+Sample:
+
+    -uacode => sub { 
+        my $ua = shift;
+        ...
+        $ua-> ...
+        ...
+        return 1;
+    }
+
+=item uaopts
+
+B<UserAgent options> is the pointer to the hash containing options for defining parameters of 
+UserAgent object's constructor. (See LWP::UserAgent)
+
+Example:
+
+    -uaopts => {
+        agent                 => "Mozilla/4.0",
+        max_redirect          => 10,
+        requests_redirectable => ['GET','HEAD','POST'],
+        protocols_allowed     => ['http', 'https'], # Required Crypt::SSLeay
+        cookie_jar            => new HTTP::Cookies(
+                file     => File::Spec->catfile("/foo/bar/_cookies.dat"),
+                autosave => 1 
+            ),
+        conn_cache            => new LWP::ConnCache(),
+    }
 
 =back
 
@@ -227,7 +305,7 @@ B<Label> - name will be replaced with appropriate L<value> in tag <!-- cgi: labe
 
 =item value
 
-B<Value> - Value, which CGI-script sets. Member of L<label>
+B<Value> - Value, which CGI-script sets. Member of the L<label> manpage
 
 =back
 
@@ -252,7 +330,7 @@ between this tags processes like labels, but the tag will be formed as <!-- val:
 Block finalizing
 
     $template->finalize(block_label);
-    
+
 Block finalizing uses for not-processed blocks deleting. You need use finalizing every time you use blockes.
 
 =head3 cast_if
@@ -350,6 +428,100 @@ The method returns result of template processing. Output method has deal with $t
 
 The method is completely equal to html method of default scheme.
 
+=head2 EXAMPLE
+
+In test.pl file:
+
+    use TemplateM 3.00 'galore';
+
+    my $tpl = new TemplateM(
+        -file   => 'test.tpl',
+        -asfile => 1,
+    );
+
+    $tpl->stash(
+        module  => (split(/\=/,"$tpl"))[0],
+        version => $tpl->VERSION,
+        scheme  => $tpl->scheme()." / ".$tpl->{module},
+        date    => scalar(localtime(time())),
+    );
+
+    my $row_box = $tpl->start('row');
+    foreach my $row ('A'..'F') {
+        $row_box->loop({});
+        my $col_box = $row_box->start('col');
+        foreach my $col (1...6) {
+            $col_box->loop( foo  => $row.$col );
+            $col_box->cast_if(div=>(
+                    ('A'..'F')[$col-1] ne $row
+                    &&
+                    ('A'..'F')[6-$col] ne $row
+                ));
+        }
+        $col_box->finish;
+    }
+    $row_box->finish;
+
+    binmode STDOUT, ':raw';
+    print $tpl->output();
+
+In test.tpl file:
+
+    **********************
+    *                    *
+    *  Simple text file  *
+    *                    *
+    **********************
+
+    Table
+    =====
+    <!-- do: row -->
+    +-----------------+
+    |<!-- do: col --><!-- if: div --><!-- val: foo --><!-- endif: div -->
+    <!-- else: div -->  <!-- endelse: div -->|<!-- loop: col --><!-- loop: row -->
+    +-----------------+
+
+    Data
+    ====
+
+    Module       : <!-- cgi: module -->
+    Version      : <!-- cgi: version -->
+    Scheme       : <!-- cgi: scheme -->
+    Current date : <!-- cgi: date -->
+
+Result:
+
+    **********************
+    *                    *
+    *  Simple text file  *
+    *                    *
+    **********************
+
+    Table
+    =====
+
+    +-----------------+
+    |  |A2|A3|A4|A5|  |
+    +-----------------+
+    |B1|  |B3|B4|  |B6|
+    +-----------------+
+    |C1|C2|  |  |C5|C6|
+    +-----------------+
+    |D1|D2|  |  |D5|D6|
+    +-----------------+
+    |E1|  |E3|E4|  |E6|
+    +-----------------+
+    |  |F2|F3|F4|F5|  |
+    +-----------------+
+
+    Data
+    ====
+
+    Module       : TemplateM
+    Version      : 3.00
+    Scheme       : galore / GaloreWin32
+    Current date : Sat Dec 18 12:37:10 2010
+
 =head2 TEMPLATEM'S AND SSI DIRECTIVES
 
 The module can be used with SSI directives together, like in this shtml-sample:
@@ -374,7 +546,7 @@ Please report them.
 
 =head1 SEE ALSO
 
-LWP, CGI
+C<LWP>, C<LWP::UserAgent>, C<HTTP::Request>, C<HTTP::Response>, C<HTTP::Headers>
 
 =head1 DIAGNOSTICS
 
@@ -413,6 +585,14 @@ The usual warnings if it cannot read or write the files involved.
 
 2.23 File access errors corrected
 
+3.00 Changes:
+
+    * Full UTF8 support added
+    * Direct reading of template file from a disk added
+    * SSL (HTTPS) support added
+    * Error while getting template via LWP::Simple module fixed
+    * Ability of use UserAgent, Request and Response objects added (see libwww-perl)
+
 =head1 TODO
 
     * simultaneous multiple declared do-loop structure blocks processing.
@@ -427,22 +607,24 @@ Lepenkov Sergey (Serz Minus), C<minus@mail333.com>
 
 =head1 COPYRIGHTS
 
-Copyright (C) 1998-2008 D&D Corporation. All Rights Reserved
+Copyright (C) 1998-2010 D&D Corporation. All Rights Reserved
 
 =cut
 
 use vars qw($VERSION);
-our $VERSION = 2.23;
+our $VERSION = '3.00';
 our @ISA;
+
+use Encode;
+use Carp qw/croak confess carp cluck/;
+use File::Spec;
 
 use TemplateM::Util;
 
-use LWP::Simple;
-use HTTP::Request;
 use LWP::UserAgent;
+use HTTP::Request;
+use HTTP::Response;
 use HTTP::Headers;
-
-use File::Spec;
 
 my $mpflag = 0;
 if (exists $ENV{MOD_PERL}) {
@@ -452,6 +634,7 @@ if (exists $ENV{MOD_PERL}) {
         require Apache2::RequestRec;
         require Apache2::RequestUtil;
         require Apache2::RequestIO;
+        require Apache2::ServerRec;
         require APR::Pool;
     } else {
         $mpflag = 1;
@@ -474,47 +657,74 @@ sub import {
     @ISA = ("TemplateM::$module");
 }
 
+BEGIN {
+    sub errstamp { "[".(caller(1))[3]."]" }
+}
+
 sub new {
     my $class = shift;
     my @arg = @_;
     
     # GET Args
-    my ($file, $login, $password, $cachedir, $timeout, $header, $template);
-    ($file, $login, $password, $cachedir, $timeout, $header, $template) = read_attributes(
+    my ($file, $login, $password, $cachedir, $timeout, $header, $template, 
+        $asfile, $onutf8, $method, $uaopt, $uacode, $reqcode, $rescode);
+    ($file, $login, $password, $cachedir, $timeout, $header, $template,
+        $asfile, $onutf8, $method, $uaopt, $uacode, $reqcode, $rescode) = read_attributes(
         [
-            ['FILE','URL'],
-            ['LOGIN','USER'],
-            'PASSWORD',
-            ['CACHE','CACHEFILE','CACHEDIR'],
-            ['TIMEOUT','TIME','INTERVAL'],
-            ['HEAD','HEADER'],
-            ['TEMPLATE','TPL','TMPL','TPLT','TMPLT','CONTENT']
+            [qw/FILE URL FILENAME URI/],
+            [qw/LOGIN USER/],
+            [qw/PASSWORD PASSWD/],
+            [qw/CACHE CACHEFILE CACHEDIR/],
+            [qw/TIMEOUT TIME INTERVAL/],
+            [qw/HEAD HEADER/],
+            [qw/TEMPLATE TPL TMPL TPLT TMPLT CONTENT/],
+            
+            [qw/ASFILE ONFILE/],
+            [qw/UTF8 UTF-8 ONUTF8 ASUTF8 UTF8ON UTF8_ON ON_UTF8 USEUTF8/],
+            [qw/METH METHOD/], #  "GET", "HEAD", "PUT" or "POST".
+            [qw/UAOPT UAOPTS UAOPTION UAOPTIONS UAPARAMS/],
+            
+            [qw/UACODE/],
+            [qw/REQCODE/],
+            [qw/RESCODE/],
+            
         ], @arg ) if defined $arg[0];
-    
+
     # DEFAULTS & BLESS
     $file ||= 'index.shtml';
-    my $cache = _get_cachefile($cachedir, $file);
+    my $cache = '';
+    if (ref $file eq 'GLOB') {
+        $asfile = 1;
+    } else {
+        $cache = _get_cachefile($cachedir, $file);
+    }
 
-
-    unless ($template) {
-        if ( _timeout_ok($cache, $timeout) ) {     
-            $template = load_url($file, $login, $password);
-            if ($cache) {
-                if ($template eq '') {
-                    $template = load_cache($cache);
-                } else {
-                    save_cache($cache, $template);
-              }
-            }
+    unless (defined $template) {
+        if ($asfile) {
+            $template = _load_file($file, $onutf8);
         } else {
-            $template = load_cache($cache) if $cache;
+            if ( _timeout_ok($cache, $timeout) ) {
+                $template = _load_url(
+                        $file, $login, $password, $onutf8, $method,
+                        $uaopt, $uacode, $reqcode, $rescode
+                    );
+                if ($cache) {
+                    if ($template eq '') {
+                        $template = _load_cache($cache, $onutf8);
+                    } else {
+                        _save_cache($cache, $onutf8, $template);
+                    }
+                }
+            } else {
+                $template = _load_cache($cache, $onutf8) if $cache;
+            }
         }
     }
 
-    templatem_error("[new] An error occurred while trying to obtain the resource $file") unless $template;
+    Encode::_utf8_on($template) if $onutf8;
 
     my $stk = $modules{galore} eq "GaloreWin32" ? [] : '';
-    
+
     my $self = bless {
             timeout  => $timeout  || 0,
             file     => $file     || '',
@@ -525,11 +735,12 @@ sub new {
             template => $template || '',
             header   => $header   || '',
             module   => $module   || '',
+            # Galore
             work     => $template || '',
             stackout => $stk,
             looparr  => {}
         }, $class;
-    
+
     return $self;
 }
 sub module {
@@ -537,14 +748,29 @@ sub module {
     my %hm = reverse %modules;
     lc($hm{$self->{module}})
 }
-sub scheme { module( @_) }
-sub schema { module( @_) }
-sub load_url {
-    my $file = shift || '';
-    my $login = shift || '';
-    my $password = shift || '';
+sub scheme { module( @_ ) }
+sub schema { module( @_ ) }
+sub AUTOLOAD {
+    my $self = shift;
+    $self->html(@_)
+}
+sub DESTROY {
+    my $self = shift;
+    undef($self);
+}
 
-    my $url = '';
+sub _load_url {
+    my $file     = shift || '';
+    my $login    = shift || '';
+    my $password = shift || '';
+    my $onutf8   = shift || 0;
+    my $method   = shift || 'GET';
+    my $uaopt    = shift || {};
+    my $uscode   = shift || undef;
+    my $reqcode  = shift || undef;
+    my $rescode  = shift || undef;
+
+    my $url  = '';
     my $html = '';
 
     if ($file =~/^\//) {
@@ -555,89 +781,114 @@ sub load_url {
         $url = _get_uri($file, 1);
     }   
 
-    if ($login eq '') {
-        $html = get($url) || '';
+    my $ua  = new LWP::UserAgent(%$uaopt); 
+    $uscode->($ua) if ($uscode && ref($uscode) eq 'CODE');
+    my $req = new HTTP::Request(uc($method), $url);
+        $req->authorization_basic($login, $password) if $login;
+        $reqcode->($req) if ($reqcode && ref($reqcode) eq 'CODE');
+    my $res = $ua->request($req);
+        $rescode->($res) if ($rescode && ref($rescode) eq 'CODE');
+    if ($res->is_success) {
+        if ($onutf8) {
+            $html = $res->decoded_content || '';
+            Encode::_utf8_on($html);
+        } else {
+            $html = $res->content || '';
+        }
     } else {
-        my $ua = new LWP::UserAgent; 
-        my $req = new HTTP::Request(GET => $url);
-        $req->authorization_basic($login, $password); 
-        my $res = $ua->request($req);
-        $html = $res->is_success?$res->content : '';
+        carp(errstamp," An error occurred while trying to obtain the resource \"$url\" (",$res->status_line,")");
     }
 
     return $html;
 }
+sub _save_cache {
+    my $cf      = shift || '';
+    my $onutf8 = shift;
+    my $content = shift || '';
+    my $OUT;
 
-sub save_cache {
-    my $cachefile = shift || '';
-    my $dataarea  = shift || '';
-    
-    local *CACHE;
-    open CACHE, ">$cachefile" or templatem_error("[save_cache] An error occurred while trying to write in $cachefile");
-        binmode CACHE;
-        flock CACHE, 2 or templatem_error("[save_cache] An error occurred while blocking in $cachefile"); 
-        print CACHE $dataarea;
-    close CACHE;
-}
-
-sub load_cache {
-    my $cachefile = shift || '';
-    my $htmlret='';
- 
-    local *CACHE;
-   
-    if ($cachefile && -e $cachefile) {
-
-        open CACHE, "$cachefile" or templatem_error("[load_cache] An error occurred while trying to read from $cachefile");
-            read(CACHE, $htmlret, -s $cachefile) unless -z $cachefile;
-        close CACHE;
+    my $flc = 0;
+    if (ref $cf eq 'GLOB') {
+       $OUT = $cf;
     } else {
-        templatem_error("[load_cache] An error occurred while opening $cachefile");
+        open $OUT, '>', $cf or croak(errstamp," An error occurred while trying to write in file \"$cf\" ($!)");
+        flock $OUT, 2 or croak(errstamp," An error occurred while blocking in file \"$cf\" ($!)");
+        $flc = 1;
     }
-    
-    templatem_error ("File $cachefile is empty") unless $htmlret;
-    
-    return $htmlret;
+
+    binmode $OUT, ':raw:utf8' if $onutf8;
+    binmode $OUT unless $onutf8;
+    print $OUT $content;
+    close $OUT if $flc;
+    return 1;
 }
+sub _load_cache {
+    my $cf = shift || '';
+    my $onutf8 = shift;
+    my $IN;
 
+    if ($cf && -e $cf) {
+        if (ref $cf eq 'GLOB') {
+            $IN = $cf;
+        } else {
+            open $IN, '<', $cf or croak(errstamp," An error occurred while trying to read from file \"$cf\" ($!)");
+        }
+        binmode $IN, ':raw:utf8' if $onutf8;
+        binmode $IN unless $onutf8;
+        return scalar(do { local $/; <$IN> });
+    } else {
+        carp(errstamp," An error occurred while opening file \"$cf\" ($!)");
+    }
 
-sub templatem_error {
-    my $message = shift || 'An error in the module TemplateM';
-    die($message)
+    return '';
+}
+sub _load_file {
+    my $fn     = shift || '';
+    my $onutf8 = shift;
+    my $IN;
+
+    if (ref $fn eq 'GLOB') {
+        $IN = $fn;
+    } else {
+        open $IN, '<', $fn or croak(errstamp," An error occurred while trying to read from file \"$fn\" ($!)");
+    }
+    binmode $IN, ':raw:utf8' if $onutf8;
+    binmode $IN unless $onutf8;
+    return scalar(do { local $/; <$IN> });
 }
 sub _timeout_ok {
     my $cachefile = shift || '';
     my $timeout   = shift || 0;
-    
+
     return 1 unless $cachefile && -e $cachefile;
 
     my @statfile = stat($cachefile);
-    
+
     return 0 unless $timeout;
 
     if ((time()-$statfile[9]) > $timeout) {
         return 1;
     } else {
         return 0;
-    } 
+    }
 }
-
 sub _get_cachefile {
     my ($dir, $file) = @_;
     return '' unless $dir;
-    
+
     $file=~s/[.\/\\:?&%]/_/g;
-    
+
     return File::Spec->catfile($dir,$file)
 }
-
 sub _get_uri {
     my $file = shift || '';
     my $tp   = shift || '0';
     return '' unless $file;
+
     my $request_uri = $ENV{REQUEST_URI} || '';
     my $hostname    = $ENV{HTTP_HOST}   || '';
-    
+    my $server_port = $ENV{SERVER_PORT} || '';
+
     my $r;
     if ($mpflag) {
         if ($mpflag == 2) {
@@ -648,13 +899,16 @@ sub _get_uri {
             eval('$r = Apache->request()');
         }
         $request_uri = $r->uri();
-        $hostname = $r->hostname();
+        $hostname    = $r->hostname();
+        $server_port = $r->server->port();
     }
-    
+
     $request_uri =~ s/\?.+$//;
     $request_uri = ($request_uri =~ /^\/(.+\/).*/ ? $1 : '');
 
     my $url = "http://";
+    $url = "https://" if $server_port eq '443';
+
     if ($tp == 1) {
         # 1
         $file =~ s/^\.?\/+//;
@@ -666,14 +920,7 @@ sub _get_uri {
 
     return $url;
 }
-sub AUTOLOAD {
-    my $self = shift;
-    $self->html(@_)
-}
-sub DESTROY {
-    my $self = shift;
-    undef($self);
-}
+
 
 1;
 

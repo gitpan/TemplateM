@@ -7,27 +7,35 @@ Revision history for Perl extension template.
 1.11 Inner method's interface had structured
 
 1.21 New time managment for templates caching. You can set how long
-     template file will be cached before renew.
+    template file will be cached before renew.
 
 2.00 New abilities
 
-     * Simultaneous templates using errors is eliminated.
-     * Alternate interface of using methods is added.
-     * Method of conditional representation of template CAST_IF is added.
+    * Simultaneous templates using errors is eliminated.
+    * Alternate interface of using methods is added.
+    * Method of conditional representation of template CAST_IF is added.
 
 2.01 Cache-file access errors corrected
 
 2.20 Module structure has rebuilt and changes has done
 
-     * galore scheme added
-     * update method deleted and constructor interface changed
-     * errors of cachefile compiling was corrected
-       (prefix is deleted, CRLF consecution output is corrected)
-     * UTF-8 codepage for templates added
-     * mod_perl 1.00 and 2.00 support added
+    * galore scheme added
+    * update method deleted and constructor interface changed
+    * errors of cachefile compiling was corrected
+      (prefix is deleted, CRLF consecution output is corrected)
+    * UTF-8 codepage for templates added
+    * mod_perl 1.00 and 2.00 support added
 
 2.21 Mass data processing error under MS Windows is corrected
 
 2.22 Files in the distribution package are changed
 
 2.23 File access errors corrected
+
+3.00 Changes:
+
+    * Full UTF8 support added
+    * Direct reading of template file from a disk added
+    * SSL (HTTPS) support added
+    * Error while getting template via LWP::Simple module fixed
+    * Ability of use UserAgent, Request and Response objects added (see libwww-perl)

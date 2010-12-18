@@ -1,14 +1,18 @@
+<?xml version="1.0" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>TemplateM - *ML templates processing module</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rev="made" href="mailto:" />
 </head>
 
 <body style="background-color: white">
 
-<p><a name="__index__"></a></p>
+
 <!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
 
 <ul>
 
@@ -31,7 +35,7 @@
 
 		<li><a href="#schemes">SCHEMES</a></li>
 		<li><a href="#constructor">CONSTRUCTOR</a></li>
-		<li><a href="#default_scheme_methods_(basic_methods)">DEFAULT SCHEME METHODS (BASIC METHODS)</a></li>
+		<li><a href="#default_scheme_methods__basic_methods_">DEFAULT SCHEME METHODS (BASIC METHODS)</a></li>
 		<ul>
 
 			<li><a href="#cast">cast</a></li>
@@ -52,7 +56,8 @@
 			<li><a href="#html">html</a></li>
 		</ul>
 
-		<li><a href="#templatem's_and_ssi_directives">TEMPLATEM'S AND SSI DIRECTIVES</a></li>
+		<li><a href="#example">EXAMPLE</a></li>
+		<li><a href="#templatem_s_and_ssi_directives">TEMPLATEM'S AND SSI DIRECTIVES</a></li>
 	</ul>
 
 	<li><a href="#environment">ENVIRONMENT</a></li>
@@ -65,9 +70,11 @@
 	<li><a href="#author">AUTHOR</a></li>
 	<li><a href="#copyrights">COPYRIGHTS</a></li>
 </ul>
+
+<hr name="index" />
+</div>
 <!-- INDEX END -->
 
-<hr />
 <p>
 </p>
 <h1><a name="name">NAME</a></h1>
@@ -83,52 +90,57 @@
 <hr />
 <h1><a name="synopsis">SYNOPSIS</a></h1>
 <pre>
-    use TemplateM;
-    use TemplateM 2.23;
-    use TemplateM 'galore';
-    use TemplateM 2.23 'galore';</pre>
+    <span class="keyword">use</span> <span class="variable">TemplateM</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">TemplateM</span> <span class="number">3.00</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">TemplateM</span> <span class="string">'galore'</span><span class="operator">;</span>
+    <span class="keyword">use</span> <span class="variable">TemplateM</span> <span class="number">3.00</span> <span class="string">'galore'</span><span class="operator">;</span>
+</pre>
 <pre>
-    $template = new TemplateM(
-        -file =&gt; 'template_file',
-        -login =&gt; 'user_login',
-        -password =&gt; 'user_password',
-        -cache =&gt; 'cache_files_absolute_path',
-        -timeout =&gt; 'timeout',
-        -header =&gt; 'HTTP_header',
-        -template =&gt; 'HTTP_content'
-        );
-    my %htm = ( ... );
-    $template = new TemplateM(\%htm);</pre>
+    <span class="variable">$template</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">TemplateM</span><span class="operator">(</span>
+            <span class="string">-file</span> <span class="operator">=&gt;</span> <span class="string">'http://localhost/foo.shtml'</span><span class="operator">,</span>
+            <span class="string">-utf8</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+        <span class="operator">);</span>
+</pre>
 <pre>
-    # DEFAULT:</pre>
+    <span class="comment"># DEFAULT:</span>
+</pre>
 <pre>
-    $template-&gt;cast({label1=&gt;value1, label2=&gt;value2, ... });
-    my %h = ( ... );
-    $template-&gt;cast(\%h);</pre>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">cast</span><span class="operator">(</span><span class="operator">{</span><span class="string">foo</span> <span class="operator">=&gt;</span> <span class="string">'value1'</span><span class="operator">,</span> <span class="string">bar</span> <span class="operator">=&gt;</span> <span class="string">'value2'</span><span class="operator">,</span> <span class="operator">...</span> <span class="operator">}</span><span class="operator">);</span>
+    <span class="keyword">my</span> <span class="variable">%h</span> <span class="operator">=</span> <span class="operator">(</span> <span class="operator">...</span> <span class="operator">);</span>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">cast</span><span class="operator">(\</span><span class="variable">%h</span><span class="operator">);</span>
+</pre>
 <pre>
-    $template-&gt;cast_loop (&quot;block_label&quot;, {label1=&gt;value1, label2=&gt;value2, ... });
-    $template-&gt;finalize (&quot;block_label);
-    
-    $template-&gt;cast_if('block_label', predicate);</pre>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">cast_loop</span> <span class="operator">(</span><span class="string">"block_label"</span><span class="operator">,</span> <span class="operator">{</span><span class="string">foo</span> <span class="operator">=&gt;</span> <span class="string">'value1'</span><span class="operator">,</span> <span class="string">bar</span> <span class="operator">=&gt;</span> <span class="string">'value2'</span><span class="operator">,</span> <span class="operator">...</span> <span class="operator">}</span><span class="operator">);</span>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">finalize</span> <span class="operator">(</span><span class="string">"block_label);
+    </span>
+</pre>
 <pre>
-    # GALORE:</pre>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">cast_if</span><span class="operator">(</span><span class="string">'block_label'</span><span class="operator">,</span> <span class="variable">$predicate</span><span class="operator">);</span>
+</pre>
 <pre>
-    my $block = $template-&gt;start('block_label');</pre>
+    <span class="comment"># GALORE:</span>
+</pre>
 <pre>
-    $block-&gt;loop(label1 =&gt; 'A', label2 =&gt; 'B', ... );</pre>
+    <span class="keyword">my</span> <span class="variable">$block</span> <span class="operator">=</span> <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">(</span><span class="string">'block_label'</span><span class="operator">);</span>
+    <span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">loop</span><span class="operator">(</span><span class="string">foo</span> <span class="operator">=&gt;</span> <span class="string">'value1'</span><span class="operator">,</span> <span class="string">bar</span> <span class="operator">=&gt;</span> <span class="string">'value2'</span><span class="operator">,</span> <span class="operator">...</span> <span class="operator">);</span>
+</pre>
 <pre>
-    $template-&gt;stash(label1 =&gt; 'value1', label2 =&gt; 'value2', ...);
-    $block-&gt;stash(label1 =&gt; 'value1', ... );</pre>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">stash</span><span class="operator">(</span><span class="string">foo</span> <span class="operator">=&gt;</span> <span class="string">'value1'</span><span class="operator">,</span> <span class="string">bar</span> <span class="operator">=&gt;</span> <span class="string">'value2'</span><span class="operator">,</span> <span class="operator">...);</span>
+    <span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">stash</span><span class="operator">(</span><span class="string">baz</span> <span class="operator">=&gt;</span> <span class="string">'value1'</span><span class="operator">,</span> <span class="operator">...</span> <span class="operator">);</span>
+</pre>
 <pre>
     $template-&gt;ifelse(&quot;ifblock_label&quot;, $predicate)
     $block-&gt;ifelse(&quot;ifblock_label&quot;, $predicate)</pre>
 <pre>
-    $block-&gt;output;</pre>
+    <span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">output</span><span class="operator">;</span>
+</pre>
 <pre>
-    $block-&gt;finish;</pre>
+    <span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span>
+</pre>
 <pre>
-    $template-&gt;output;
-    $template-&gt;html(&quot;Content-type: text/html\n\n&quot;);</pre>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">output</span><span class="operator">;</span>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">html</span><span class="operator">(</span><span class="string">"Content-type: text/html\n\n"</span><span class="operator">);</span>
+</pre>
 <p>
 </p>
 <hr />
@@ -149,28 +161,27 @@
 <p>
 </p>
 <h2><a name="directive">Directive</a></h2>
-<p>Name of structure in a template for substitution. There are a number of directives:
-</p>
+<p>Name of structure in a template for substitution. There are a number of directives:</p>
 <pre>
 
-    cgi, val, do, loop, if, else</pre>
+    cgi, val, do, loop, if, endif, else, endelse</pre>
 <p>
 </p>
 <h2><a name="structure">Structure</a></h2>
 <p>Structure is the tag or the group of tags in a template which defining a scope of substitution.
-The structure consist of tag &lt;!-- --&gt; and formatted content:
-</p>
+The structure consist of tag &lt;!-- --&gt; and formatted content:</p>
 <pre>
-
     DIRECTIVE: LABEL</pre>
 <p>The structure can be simple or complex. Simple one is like this:</p>
 <pre>
     &lt;!-- cgi: foo --&gt;
     or
     &lt;!-- val: bar --&gt;</pre>
-<p>Complex structure is the group of simple structures which constitutive a ``section''</p>
+<p>Complex structure is the group of simple structures which constitutive a &quot;section&quot;</p>
 <pre>
     &lt;!-- do: foo --&gt;
+    ...
+        &lt;!-- val: bar --&gt;
     ...
     &lt;!-- loop: foo --&gt;</pre>
 <pre>
@@ -204,131 +215,252 @@ It is not obligatory to point at default scheme.</p>
 <p><code>stash, start, loop, finish, ifelse, output and html</code></p>
 <p>In order to get knowing which of schemes is activated you need to invoke methods either <code>module()</code> or <code>scheme()</code></p>
 <pre>
-    my $module = $template-&gt;module;
-    my $module = $template-&gt;scheme;</pre>
+    <span class="keyword">my</span> <span class="variable">$module</span> <span class="operator">=</span> <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">module</span><span class="operator">;</span>
+    <span class="keyword">my</span> <span class="variable">$module</span> <span class="operator">=</span> <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">scheme</span><span class="operator">;</span>
+</pre>
 <p>In order to get know real module name of the used scheme it's enough to read property 'module' of $template object</p>
 <pre>
-    my $module = $template-&gt;{module};</pre>
+    <span class="keyword">my</span> <span class="variable">$module</span> <span class="operator">=</span> <span class="variable">$template</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">module</span><span class="operator">}</span><span class="operator">;</span>
+</pre>
 <p>
 </p>
 <h2><a name="constructor">CONSTRUCTOR</a></h2>
 <p>Constructor <code>new()</code> is the principal method independent of selected scheme. Almost simple way to use the constructor is:</p>
 <pre>
-    my $template = new TemplateM( -cache =&gt; &quot;.&quot; );</pre>
-<p>This invoking takes directive to use template file named index.shtml in current directory and uses the current directory for cache files storage.</p>
+    <span class="keyword">my</span> <span class="variable">$template</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">TemplateM</span><span class="operator">(</span> <span class="string">-template</span> <span class="operator">=&gt;</span> <span class="string">"blah-blah-blah"</span> <span class="operator">);</span>
+</pre>
+<p>This invoking takes directive to use simple text as template.</p>
 <p>Below is the attribute list of constructor:</p>
 <dl>
-<dt><strong><a name="item_file">file</a></strong><br />
-</dt>
+<dt><strong><a name="asfile" class="item">asfile</a></strong>
+
 <dd>
-<strong>Template filename</strong> is the filename or locations of a template. Supports relative or absolute pathes,
+<p><strong>Asfile flag</strong> designates either path or filehandle to file is passed for reading from disk, bypassing 
+the method of remote obtaining of a template.</p>
+</dd>
+</li>
+<dt><strong><a name="cache" class="item">cache</a></strong>
+
+<dd>
+<p><strong>Cache</strong> is the absolute or relative path to directory for cache files storage. This directory needs to have a permission to read and write files.
+When <strong>cache</strong> is missed caching is disabled. Caching on is recommended for faster module operations.</p>
+</dd>
+</li>
+<dt><strong><a name="file" class="item">file</a></strong>
+
+<dd>
+<p><strong>Template filename</strong> is the filename, opened filehandler (GLOB) or locations of a template. 
+Supports relative or absolute pathes,
 and also template file locator. Relative path can forestall with ./ prefix or without it.
 Absolute path must be forestall with / prefix. Template file locator is the URI formatted string.
-If the file is missed, it use ``index.shtml' from current directory as default value.
+If the file is missed, it use ``index.shtml' from current directory as default value.</p>
 </dd>
-<p></p>
-<dt><strong><a name="item_login_and_password">login and password</a></strong><br />
-</dt>
+</li>
+<dt><strong><a name="header" class="item">header</a></strong>
+
 <dd>
-<strong>User Login</strong> and <strong>user password</strong> are data for standard HTTP-authorization.
+<p><strong>HTTP header</strong> uses as value by default before main content template print (method html).</p>
+</dd>
+<dd>
+<pre>
+    <span class="keyword">my</span> <span class="variable">$template</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">TemplateM</span><span class="operator">(</span> <span class="string">-header</span> <span class="operator">=&gt;</span> <span class="string">"Content-type: text/html; charset=UTF-8\n\n"</span><span class="operator">);</span>
+    <span class="keyword">print</span> <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">html</span><span class="operator">;</span>
+</pre>
+</dd>
+</li>
+<dt><strong><a name="login_and_password" class="item">login and password</a></strong>
+
+<dd>
+<p><strong>User Login</strong> and <strong>user password</strong> are data for standard HTTP-authorization.
 Login and password will be used when the template defined via locator and when remote access is
 protected by HTTP-authorization of remote server. When user_login is missed the access to remote
-template file realizes simplified scheme, without basic HTTP-authorization.
+template file realizes simplified scheme, without basic HTTP-authorization.</p>
 </dd>
-<p></p>
-<dt><strong><a name="item_cache">cache</a></strong><br />
-</dt>
+</li>
+<dt><strong><a name="method" class="item">method</a></strong>
+
 <dd>
-<strong>Cache</strong> is the absolute or relative path to directory for cache files storage. This directory needs to have a permission to read and write files.
-When <strong>cache</strong> is missed caching is disabled. Caching on is recommended for faster module operations.
+<p><strong>Request method</strong> points to method of remote HTTP/HTTPS access to template page. Can take values: &quot;GET&quot;, 
+&quot;HEAD&quot;, &quot;PUT&quot; or &quot;POST&quot;. HEAD methods can be used only for headers getting.</p>
 </dd>
-<p></p>
-<dt><strong><a name="item_timeout">timeout</a></strong><br />
-</dt>
+</li>
+<dt><strong><a name="onutf8_or_utf8" class="item">onutf8 or utf8</a></strong>
+
 <dd>
-<strong>Timeout</strong> is the period of cache file keeping in integer seconds.
-When the value is missed cache file ``compiles'' once and will be used as template.
-Positive value has an effect only then template file is dynamic and it changes in time.
-Previous versions of the module sets value 20 instead 0 by default.
-It had to set the value -1 for ``compilation'' disabling.
-For current version of the module value can be 0 or every positive number. 0 is
-equivalent -1 of previous versions of the module.
+<p><strong>onutf8 flag</strong> turn UTF8 mode for access to a file. The flag allow to get rid of a forced setting utf-8 
+flag for properties template and work by method Encode::_utf8_on()</p>
 </dd>
-<p></p>
-<dt><strong><a name="item_header">header</a></strong><br />
-</dt>
+</li>
+<dt><strong><a name="template" class="item">template</a></strong>
+
 <dd>
-<strong>HTTP header</strong> uses as value by default before main content template print.
-</dd>
-<dd>
-<pre>
-    my $template = new TemplateM( -header =&gt; &quot;Content-type: text/html; charset=UTF-8\n\n&quot;);
-    print $template-&gt;html;</pre>
-</dd>
-<p></p>
-<dt><strong><a name="item_template">template</a></strong><br />
-</dt>
-<dd>
-<strong>HTTP content</strong> (template). This attribute has to be defined when template content is not
+<p><strong>HTTP content</strong> (template). This attribute has to be defined when template content is not
 able to get from a file or get it from remote locations. E.g. it has to be defined when
 a template selects from a database. Defining of this attribute means disabling of
-precompile result caching!
+precompile result caching!</p>
 </dd>
-<p></p></dl>
+</li>
+<dt><strong><a name="timeout" class="item">timeout</a></strong>
+
+<dd>
+<p><strong>Timeout</strong> is the period of cache file keeping in integer seconds.
+When the value is missed cache file &quot;compiles&quot; once and will be used as template.
+Positive value has an effect only then template file is dynamic and it changes in time.
+Previous versions of the module sets value 20 instead 0 by default.
+It had to set the value -1 for &quot;compilation&quot; disabling.
+For current version of the module value can be 0 or every positive number. 0 is
+equivalent -1 of previous versions of the module.</p>
+</dd>
+</li>
+<dt><strong><a name="reqcode" class="item">reqcode</a></strong>
+
+<dd>
+<p><strong>Request code</strong> is the pointer to the subroutine must be invoked for HTTP::Request object 
+after creation via method new.</p>
+</dd>
+<dd>
+<p>Sample:</p>
+</dd>
+<dd>
+<pre>
+    <span class="string">-reqcode</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> 
+        <span class="keyword">my</span> <span class="variable">$req</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+        <span class="operator">...</span>
+        <span class="variable">$req</span><span class="operator">-&gt;</span> .<span class="operator">..</span>
+        <span class="operator">...</span>
+        <span class="keyword">return</span> <span class="number">1</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</pre>
+</dd>
+</li>
+<dt><strong><a name="rescode" class="item">rescode</a></strong>
+
+<dd>
+<p><strong>Response code</strong> is the pointer to the subroutine must be invoked for HTTP::Response after 
+creation via calling $ua-&gt;<code>request($req)</code>.</p>
+</dd>
+<dd>
+<p>Sample:</p>
+</dd>
+<dd>
+<pre>
+    <span class="string">-rescode</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> 
+        <span class="keyword">my</span> <span class="variable">$res</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+        <span class="operator">...</span>
+        <span class="variable">$res</span><span class="operator">-&gt;</span> .<span class="operator">..</span>
+        <span class="operator">...</span>
+        <span class="keyword">return</span> <span class="number">1</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</pre>
+</dd>
+</li>
+<dt><strong><a name="uacode" class="item">uacode</a></strong>
+
+<dd>
+<p><strong>UserAgent code</strong> is the pointer to the subroutine must be invoked for LWP::UserAgent after 
+creation via method <code>new()</code>.</p>
+</dd>
+<dd>
+<p>Sample:</p>
+</dd>
+<dd>
+<pre>
+    <span class="string">-uacode</span> <span class="operator">=&gt;</span> <span class="keyword">sub</span><span class="variable"> </span><span class="operator">{</span> 
+        <span class="keyword">my</span> <span class="variable">$ua</span> <span class="operator">=</span> <span class="keyword">shift</span><span class="operator">;</span>
+        <span class="operator">...</span>
+        <span class="variable">$ua</span><span class="operator">-&gt;</span> .<span class="operator">..</span>
+        <span class="operator">...</span>
+        <span class="keyword">return</span> <span class="number">1</span><span class="operator">;</span>
+    <span class="operator">}</span>
+</pre>
+</dd>
+</li>
+<dt><strong><a name="uaopts" class="item">uaopts</a></strong>
+
+<dd>
+<p><strong>UserAgent options</strong> is the pointer to the hash containing options for defining parameters of 
+UserAgent object's constructor. (See LWP::UserAgent)</p>
+</dd>
+<dd>
+<p>Example:</p>
+</dd>
+<dd>
+<pre>
+    <span class="string">-uaopts</span> <span class="operator">=&gt;</span> <span class="operator">{</span>
+        <span class="string">agent</span>                 <span class="operator">=&gt;</span> <span class="string">"Mozilla/4.0"</span><span class="operator">,</span>
+        <span class="string">max_redirect</span>          <span class="operator">=&gt;</span> <span class="number">10</span><span class="operator">,</span>
+        <span class="string">requests_redirectable</span> <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">'GET'</span><span class="operator">,</span><span class="string">'HEAD'</span><span class="operator">,</span><span class="string">'POST'</span><span class="operator">]</span><span class="operator">,</span>
+        <span class="string">protocols_allowed</span>     <span class="operator">=&gt;</span> <span class="operator">[</span><span class="string">'http'</span><span class="operator">,</span> <span class="string">'https'</span><span class="operator">]</span><span class="operator">,</span> <span class="comment"># Required Crypt::SSLeay</span>
+        <span class="string">cookie_jar</span>            <span class="operator">=&gt;</span> <span class="variable">new</span> <span class="variable">HTTP::Cookies</span><span class="operator">(</span>
+                <span class="string">file</span>     <span class="operator">=&gt;</span> <span class="variable">File::Spec</span><span class="operator">-&gt;</span><span class="variable">catfile</span><span class="operator">(</span><span class="string">"/foo/bar/_cookies.dat"</span><span class="operator">),</span>
+                <span class="string">autosave</span> <span class="operator">=&gt;</span> <span class="number">1</span> 
+            <span class="operator">),</span>
+        <span class="string">conn_cache</span>            <span class="operator">=&gt;</span> <span class="variable">new</span> <span class="variable">LWP::ConnCache</span><span class="operator">(),</span>
+    <span class="operator">}</span>
+</pre>
+</dd>
+</li>
+</dl>
 <p>
 </p>
-<h2><a name="default_scheme_methods_(basic_methods)">DEFAULT SCHEME METHODS (BASIC METHODS)</a></h2>
+<h2><a name="default_scheme_methods__basic_methods_">DEFAULT SCHEME METHODS (BASIC METHODS)</a></h2>
 <p>It is enough to define the module without parameters for using of basic methods.</p>
 <pre>
-    use TemplateM;</pre>
+    <span class="keyword">use</span> <span class="variable">TemplateM</span><span class="operator">;</span>
+</pre>
 <p>After that only basic metods will be automatically enabled.</p>
 <p>
 </p>
 <h3><a name="cast">cast</a></h3>
 <p>Modification of labels (cgi labels)</p>
 <pre>
-    $template-&gt;cast({label1=&gt;value1, label2=&gt;value2, ... });</pre>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">cast</span><span class="operator">(</span><span class="operator">{</span><span class="string">label1</span><span class="operator">=&gt;</span><span class="variable">value1</span><span class="operator">,</span> <span class="string">label2</span><span class="operator">=&gt;</span><span class="variable">value2</span><span class="operator">,</span> <span class="operator">...</span> <span class="operator">}</span><span class="operator">);</span>
+</pre>
 <dl>
-<dt><strong><a name="item_label">label</a></strong><br />
-</dt>
+<dt><strong><a name="label" class="item">label</a></strong>
+
 <dd>
-<strong>Label</strong> - name will be replaced with appropriate <a href="#item_value">value</a> in tag &lt;!-- cgi: label --&gt;
+<p><strong>Label</strong> - name will be replaced with appropriate <a href="#value">value</a> in tag &lt;!-- cgi: label --&gt;</p>
 </dd>
-<p></p>
-<dt><strong><a name="item_value">value</a></strong><br />
-</dt>
+</li>
+<dt><strong><a name="value" class="item">value</a></strong>
+
 <dd>
-<strong>Value</strong> - Value, which CGI-script sets. Member of <a href="#label">the label manpage</a>
+<p><strong>Value</strong> - Value, which CGI-script sets. Member of the <a href="#label">the label manpage</a> manpage</p>
 </dd>
-<p></p></dl>
+</li>
+</dl>
 <p>
 </p>
 <h3><a name="cast_loop">cast_loop</a></h3>
 <p>Block labels modification (val labels)</p>
 <pre>
-    $template-&gt;cast_loop (block_label, {label1=&gt;value1, label2=&gt;value2, ... }]);</pre>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">cast_loop</span> <span class="operator">(</span><span class="variable">block_label</span><span class="operator">,</span> <span class="operator">{</span><span class="string">label1</span><span class="operator">=&gt;</span><span class="variable">value1</span><span class="operator">,</span> <span class="string">label2</span><span class="operator">=&gt;</span><span class="variable">value2</span><span class="operator">,</span> <span class="operator">...</span> <span class="operator">}</span><span class="operator">]);</span>
+</pre>
 <dl>
-<dt><strong><a name="item_block_label">block_label</a></strong><br />
-</dt>
+<dt><strong><a name="block_label" class="item">block_label</a></strong>
+
 <dd>
-<strong>Block label</strong> - Block identification name.
+<p><strong>Block label</strong> - Block identification name.
 The name will be inserted in tags &lt;!-- do: block_label --&gt; and &lt;!-- loop: block_label --&gt; - all content
-between this tags processes like labels, but the tag will be formed as &lt;!-- val: label --&gt;
+between this tags processes like labels, but the tag will be formed as &lt;!-- val: label --&gt;</p>
 </dd>
-<p></p></dl>
+</li>
+</dl>
 <p>
 </p>
 <h3><a name="finalize">finalize</a></h3>
 <p>Block finalizing</p>
 <pre>
-    $template-&gt;finalize(block_label);
-    
-Block finalizing uses for not-processed blocks deleting. You need use finalizing every time you use blockes.</pre>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">finalize</span><span class="operator">(</span><span class="variable">block_label</span><span class="operator">);</span>
+</pre>
+<p>Block finalizing uses for not-processed blocks deleting. You need use finalizing every time you use blockes.</p>
 <p>
 </p>
 <h3><a name="cast_if">cast_if</a></h3>
 <pre>
-    $template-&gt;cast_if(ifblock_label, predicate);</pre>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">cast_if</span><span class="operator">(</span><span class="variable">ifblock_label</span><span class="operator">,</span> <span class="variable">predicate</span><span class="operator">);</span>
+</pre>
 <p>Method analyses boolean value of predicate. If value is true, the method prints if-structure content only.</p>
 <pre>
     &lt;!-- if: label --&gt;
@@ -344,9 +476,10 @@ Block finalizing uses for not-processed blocks deleting. You need use finalizing
 <h3><a name="html">html</a></h3>
 <p>Template finalizing</p>
 <pre>
-    print $template-&gt;html(-header=&gt;HTTP_header);
-    print $template-&gt;html(HTTP_header);
-    print $template-&gt;html;</pre>
+    <span class="keyword">print</span> <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">html</span><span class="operator">(</span><span class="string">-header</span><span class="operator">=&gt;</span><span class="variable">HTTP_header</span><span class="operator">);</span>
+    <span class="keyword">print</span> <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">html</span><span class="operator">(</span><span class="variable">HTTP_header</span><span class="operator">);</span>
+    <span class="keyword">print</span> <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">html</span><span class="operator">;</span>
+</pre>
 <p>The procedure will return formed document after template processing.
 if header is present as argument it will be added at the beginning of template's return.</p>
 <p>
@@ -354,13 +487,15 @@ if header is present as argument it will be added at the beginning of template's
 <h2><a name="galore_scheme_methods">GALORE SCHEME METHODS</a></h2>
 <p>It is enough to define the module with parameter 'galore' for using of galore scheme methods.</p>
 <pre>
-    use TemplateM 'galore';</pre>
+    <span class="keyword">use</span> <span class="variable">TemplateM</span> <span class="string">'galore'</span><span class="operator">;</span>
+</pre>
 <p>
 </p>
 <h3><a name="stash">stash</a></h3>
 <p>stash (or cast) method is the function of import variables value into template.</p>
 <pre>
-    $template-&gt;stash(title =&gt; 'PI' , pi =&gt; 3.1415926);</pre>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">stash</span><span class="operator">(</span><span class="string">title</span> <span class="operator">=&gt;</span> <span class="string">'PI'</span> <span class="operator">,</span> <span class="string">pi</span> <span class="operator">=&gt;</span> <span class="number">3.1415926</span><span class="operator">);</span>
+</pre>
 <p>This example demonstrate how all of &lt;!-- cgi: title --&gt; and &lt;!-- cgi: pi --&gt; structures
 will be replaced by parameters of stash method invoking.</p>
 <p>In contrast to default scheme, in galore scheme stash method process directives &lt;!-- cgi: label --&gt; only
@@ -380,20 +515,23 @@ Start method returns reference to the subtemplate object, that is all between do
         ... blah blah blah ...
     &lt;!-- loop: block_label --&gt;</pre>
 <pre>
-    my $block = $template-&gt;start(block_label);
-    ...
-    $block-&gt;finish;</pre>
+    <span class="keyword">my</span> <span class="variable">$block</span> <span class="operator">=</span> <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">(</span><span class="variable">block_label</span><span class="operator">);</span>
+    <span class="operator">...</span>
+    <span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span>
+</pre>
 <p>For acces to val directives it is necessary to use loop method, and for access to cgi directives use stash method.</p>
 <p>
 </p>
 <h3><a name="loop">loop</a></h3>
 <p>The method takes as parameters a hash of arguments or a reference to this hash.</p>
 <pre>
-    $block-&gt;loop(label1 =&gt; 'A', label2 =&gt; 'B');
-    $block-&gt;loop({label1 =&gt; 'A', label2 =&gt; 'B'});</pre>
+    <span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">loop</span><span class="operator">(</span><span class="string">label1</span> <span class="operator">=&gt;</span> <span class="string">'A'</span><span class="operator">,</span> <span class="string">label2</span> <span class="operator">=&gt;</span> <span class="string">'B'</span><span class="operator">);</span>
+    <span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">loop</span><span class="operator">(</span><span class="operator">{</span><span class="string">label1</span> <span class="operator">=&gt;</span> <span class="string">'A'</span><span class="operator">,</span> <span class="string">label2</span> <span class="operator">=&gt;</span> <span class="string">'B'</span><span class="operator">}</span><span class="operator">);</span>
+</pre>
 <p>Stash method also can be invoked in $block object context.</p>
 <pre>
-    $block-&gt;stash(label =&gt; 3.1415926);</pre>
+    <span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">stash</span><span class="operator">(</span><span class="string">label</span> <span class="operator">=&gt;</span> <span class="number">3.1415926</span><span class="operator">);</span>
+</pre>
 <p>
 </p>
 <h3><a name="ifelse">ifelse</a></h3>
@@ -407,17 +545,114 @@ can be processed with $template or $block, whereas cast_if method has deal with 
 <h3><a name="output">output</a></h3>
 <p>The method returns result of template processing. Output method has deal with $template and $block object:</p>
 <pre>
-    $block-&gt;output;
-    $template-&gt;output;</pre>
+    <span class="variable">$block</span><span class="operator">-&gt;</span><span class="variable">output</span><span class="operator">;</span>
+    <span class="variable">$template</span><span class="operator">-&gt;</span><span class="variable">output</span><span class="operator">;</span>
+</pre>
 <p>
 </p>
 <h3><a name="html">html</a></h3>
 <p>The method is completely equal to html method of default scheme.</p>
 <p>
 </p>
-<h2><a name="templatem's_and_ssi_directives">TEMPLATEM'S AND SSI DIRECTIVES</a></h2>
-<p>The module can be used with SSI directives together, like in this shtml-sample:
+<h2><a name="example">EXAMPLE</a></h2>
+<p>In test.pl file:</p>
+<pre>
+    <span class="keyword">use</span> <span class="variable">TemplateM</span> <span class="number">3.00</span> <span class="string">'galore'</span><span class="operator">;</span>
+</pre>
+<pre>
+    <span class="keyword">my</span> <span class="variable">$tpl</span> <span class="operator">=</span> <span class="variable">new</span> <span class="variable">TemplateM</span><span class="operator">(</span>
+        <span class="string">-file</span>   <span class="operator">=&gt;</span> <span class="string">'test.tpl'</span><span class="operator">,</span>
+        <span class="string">-asfile</span> <span class="operator">=&gt;</span> <span class="number">1</span><span class="operator">,</span>
+    <span class="operator">);</span>
+</pre>
+<pre>
+    <span class="variable">$tpl</span><span class="operator">-&gt;</span><span class="variable">stash</span><span class="operator">(</span>
+        <span class="string">module</span>  <span class="operator">=&gt;</span> <span class="operator">(</span><span class="keyword">split</span><span class="operator">(</span><span class="regex">/\=/</span><span class="operator">,</span><span class="string">"</span><span class="variable">$tpl</span><span class="string">"</span><span class="operator">))</span><span class="operator">[</span><span class="number">0</span><span class="operator">]</span><span class="operator">,</span>
+        <span class="string">version</span> <span class="operator">=&gt;</span> <span class="variable">$tpl</span><span class="operator">-&gt;</span><span class="variable">VERSION</span><span class="operator">,</span>
+        <span class="string">scheme</span>  <span class="operator">=&gt;</span> <span class="variable">$tpl</span><span class="operator">-&gt;</span><span class="variable">scheme</span><span class="operator">().</span><span class="string">" / "</span><span class="operator">.</span><span class="variable">$tpl</span><span class="operator">-&gt;</span><span class="operator">{</span><span class="string">module</span><span class="operator">}</span><span class="operator">,</span>
+        <span class="string">date</span>    <span class="operator">=&gt;</span> <span class="keyword">scalar</span><span class="operator">(</span><span class="keyword">localtime</span><span class="operator">(</span><span class="keyword">time</span><span class="operator">())),</span>
+    <span class="operator">);</span>
+</pre>
+<pre>
+    <span class="keyword">my</span> <span class="variable">$row_box</span> <span class="operator">=</span> <span class="variable">$tpl</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">(</span><span class="string">'row'</span><span class="operator">);</span>
+    <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$row</span> <span class="operator">(</span><span class="string">'A'</span><span class="operator">..</span><span class="string">'F'</span><span class="operator">)</span> <span class="operator">{</span>
+        <span class="variable">$row_box</span><span class="operator">-&gt;</span><span class="variable">loop</span><span class="operator">(</span><span class="operator">{}</span><span class="operator">);</span>
+        <span class="keyword">my</span> <span class="variable">$col_box</span> <span class="operator">=</span> <span class="variable">$row_box</span><span class="operator">-&gt;</span><span class="variable">start</span><span class="operator">(</span><span class="string">'col'</span><span class="operator">);</span>
+        <span class="keyword">foreach</span> <span class="keyword">my</span> <span class="variable">$col</span> <span class="operator">(</span><span class="number">1</span><span class="operator">...</span><span class="number">6</span><span class="operator">)</span> <span class="operator">{</span>
+            <span class="variable">$col_box</span><span class="operator">-&gt;</span><span class="variable">loop</span><span class="operator">(</span> <span class="string">foo</span>  <span class="operator">=&gt;</span> <span class="variable">$row</span><span class="operator">.</span><span class="variable">$col</span> <span class="operator">);</span>
+            <span class="variable">$col_box</span><span class="operator">-&gt;</span><span class="variable">cast_if</span><span class="operator">(</span><span class="string">div</span><span class="operator">=&gt;(</span>
+                    <span class="operator">(</span><span class="string">'A'</span><span class="operator">..</span><span class="string">'F'</span><span class="operator">)</span><span class="operator">[</span><span class="variable">$col</span><span class="operator">-</span><span class="number">1</span><span class="operator">]</span> <span class="keyword">ne</span> <span class="variable">$row</span>
+                    <span class="operator">&amp;&amp;</span>
+                    <span class="operator">(</span><span class="string">'A'</span><span class="operator">..</span><span class="string">'F'</span><span class="operator">)</span><span class="operator">[</span><span class="number">6</span><span class="operator">-</span><span class="variable">$col</span><span class="operator">]</span> <span class="keyword">ne</span> <span class="variable">$row</span>
+                <span class="operator">));</span>
+        <span class="operator">}</span>
+        <span class="variable">$col_box</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span>
+    <span class="operator">}</span>
+    <span class="variable">$row_box</span><span class="operator">-&gt;</span><span class="variable">finish</span><span class="operator">;</span>
+</pre>
+<pre>
+    <span class="keyword">binmode</span> <span class="variable">STDOUT</span><span class="operator">,</span> <span class="string">':raw'</span><span class="operator">;</span>
+    <span class="keyword">print</span> <span class="variable">$tpl</span><span class="operator">-&gt;</span><span class="variable">output</span><span class="operator">();</span>
+</pre>
+<p>In test.tpl file:</p>
+<pre>
+    **********************
+    *                    *
+    *  Simple text file  *
+    *                    *
+    **********************</pre>
+<pre>
+    Table
+    =====
+    &lt;!-- do: row --&gt;
+    +-----------------+
+    |&lt;!-- do: col --&gt;&lt;!-- if: div --&gt;&lt;!-- val: foo --&gt;&lt;!-- endif: div --&gt;
+    &lt;!-- else: div --&gt;  &lt;!-- endelse: div --&gt;|&lt;!-- loop: col --&gt;&lt;!-- loop: row --&gt;
+    +-----------------+</pre>
+<pre>
+    Data
+    ====</pre>
+<pre>
+    Module       : &lt;!-- cgi: module --&gt;
+    Version      : &lt;!-- cgi: version --&gt;
+    Scheme       : &lt;!-- cgi: scheme --&gt;
+    Current date : &lt;!-- cgi: date --&gt;</pre>
+<p>Result:</p>
+<pre>
+    **********************
+    *                    *
+    *  Simple text file  *
+    *                    *
+    **********************</pre>
+<pre>
+    Table
+    =====</pre>
+<pre>
+    +-----------------+
+    |  |A2|A3|A4|A5|  |
+    +-----------------+
+    |B1|  |B3|B4|  |B6|
+    +-----------------+
+    |C1|C2|  |  |C5|C6|
+    +-----------------+
+    |D1|D2|  |  |D5|D6|
+    +-----------------+
+    |E1|  |E3|E4|  |E6|
+    +-----------------+
+    |  |F2|F3|F4|F5|  |
+    +-----------------+</pre>
+<pre>
+    Data
+    ====</pre>
+<pre>
+    Module       : TemplateM
+    Version      : 3.00
+    Scheme       : galore / GaloreWin32
+    Current date : Sat Dec 18 12:37:10 2010</pre>
+<p>
 </p>
+<h2><a name="templatem_s_and_ssi_directives">TEMPLATEM'S AND SSI DIRECTIVES</a></h2>
+<p>The module can be used with SSI directives together, like in this shtml-sample:</p>
 <pre>
 
     &lt;html&gt;
@@ -443,7 +678,7 @@ can be processed with $template or $block, whereas cast_if method has deal with 
 </p>
 <hr />
 <h1><a name="see_also">SEE ALSO</a></h1>
-<p>LWP, CGI</p>
+<p><code>LWP</code>, <code>LWP::UserAgent</code>, <code>HTTP::Request</code>, <code>HTTP::Response</code>, <code>HTTP::Headers</code></p>
 <p>
 </p>
 <hr />
@@ -473,7 +708,14 @@ can be processed with $template or $block, whereas cast_if method has deal with 
     * mod_perl 1.00 and 2.00 support added</pre>
 <p>2.21 Mass data processing error under MS Windows is corrected</p>
 <p>2.22 Files in the distribution package are changed</p>
-<p>2.23 File access errors corrected </p>
+<p>2.23 File access errors corrected</p>
+<p>3.00 Changes:</p>
+<pre>
+    * Full UTF8 support added
+    * Direct reading of template file from a disk added
+    * SSL (HTTPS) support added
+    * Error while getting template via LWP::Simple module fixed
+    * Ability of use UserAgent, Request and Response objects added (see libwww-perl)</pre>
 <p>
 </p>
 <hr />
@@ -494,9 +736,7 @@ can be processed with $template or $block, whereas cast_if method has deal with 
 </p>
 <hr />
 <h1><a name="copyrights">COPYRIGHTS</a></h1>
-<p>Copyright (C) 1998-2008 D&amp;D Corporation. All Rights Reserved
-
-</p>
+<p>Copyright (C) 1998-2010 D&amp;D Corporation. All Rights Reserved</p>
 
 </body>
 

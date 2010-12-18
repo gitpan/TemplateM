@@ -7,52 +7,44 @@ VERSION
     26 May 2008
 
 SYNOPSIS
-        use TemplateM;
-        use TemplateM 2.23;
-        use TemplateM 'galore';
-        use TemplateM 2.23 'galore';
+    use TemplateM;
+    use TemplateM 3.00;
+    use TemplateM 'galore';
+    use TemplateM 3.00 'galore';
 
-        $template = new TemplateM(
-            -file => 'template_file',
-            -login => 'user_login',
-            -password => 'user_password',
-            -cache => 'cache_files_absolute_path',
-            -timeout => 'timeout',
-            -header => 'HTTP_header',
-            -template => 'HTTP_content'
-            );
-        my %htm = ( ... );
-        $template = new TemplateM(\%htm);
+    $template = new TemplateM(
+            -file => 'http://localhost/foo.shtml',
+            -utf8 => 1,
+        );
 
-        # DEFAULT:
+    # DEFAULT:
 
-        $template->cast({label1=>value1, label2=>value2, ... });
-        my %h = ( ... );
-        $template->cast(\%h);
+    $template->cast({foo => 'value1', bar => 'value2', ... });
+    my %h = ( ... );
+    $template->cast(\%h);
 
-        $template->cast_loop ("block_label", {label1=>value1, label2=>value2, ... });
-        $template->finalize ("block_label);
-    
-        $template->cast_if('block_label', predicate);
+    $template->cast_loop ("block_label", {foo => 'value1', bar => 'value2', ... });
+    $template->finalize ("block_label);
+        
+    $template->cast_if('block_label', $predicate);
 
-        # GALORE:
+    # GALORE:
 
-        my $block = $template->start('block_label');
+    my $block = $template->start('block_label');
+    $block->loop(foo => 'value1', bar => 'value2', ... );
 
-        $block->loop(label1 => 'A', label2 => 'B', ... );
+    $template->stash(foo => 'value1', bar => 'value2', ...);
+    $block->stash(baz => 'value1', ... );
 
-        $template->stash(label1 => 'value1', label2 => 'value2', ...);
-        $block->stash(label1 => 'value1', ... );
+    $template->ifelse("ifblock_label", $predicate)
+    $block->ifelse("ifblock_label", $predicate)
 
-        $template->ifelse("ifblock_label", $predicate)
-        $block->ifelse("ifblock_label", $predicate)
+    $block->output;
 
-        $block->output;
+    $block->finish;
 
-        $block->finish;
-
-        $template->output;
-        $template->html("Content-type: text/html\n\n");
+    $template->output;
+    $template->html("Content-type: text/html\n\n");
 
 ABSTRACT
     The TemplateM module means for text templates processing in XML, HTML,
@@ -74,7 +66,7 @@ TERMS
     Name of structure in a template for substitution. There are a number of
     directives:
 
-        cgi, val, do, loop, if, else
+        cgi, val, do, loop, if, endif, else, endelse
 
   Structure
     Structure is the tag or the group of tags in a template which defining a
@@ -93,6 +85,8 @@ TERMS
     "section"
 
         <!-- do: foo -->
+        ...
+            <!-- val: bar -->
         ...
         <!-- loop: foo -->
 
@@ -141,20 +135,34 @@ DESCRIPTION
     Constructor new() is the principal method independent of selected
     scheme. Almost simple way to use the constructor is:
 
-        my $template = new TemplateM( -cache => "." );
+        my $template = new TemplateM( -template => "blah-blah-blah" );
 
-    This invoking takes directive to use template file named index.shtml in
-    current directory and uses the current directory for cache files
-    storage.
+    This invoking takes directive to use simple text as template.
 
     Below is the attribute list of constructor:
 
-    file    Template filename is the filename or locations of a template.
-            Supports relative or absolute pathes, and also template file
-            locator. Relative path can forestall with ./ prefix or without
-            it. Absolute path must be forestall with / prefix. Template file
-            locator is the URI formatted string. If the file is missed, it
-            use ``index.shtml' from current directory as default value.
+    asfile  Asfile flag designates either path or filehandle to file is
+            passed for reading from disk, bypassing the method of remote
+            obtaining of a template.
+
+    cache   Cache is the absolute or relative path to directory for cache
+            files storage. This directory needs to have a permission to read
+            and write files. When cache is missed caching is disabled.
+            Caching on is recommended for faster module operations.
+
+    file    Template filename is the filename, opened filehandler (GLOB) or
+            locations of a template. Supports relative or absolute pathes,
+            and also template file locator. Relative path can forestall with
+            ./ prefix or without it. Absolute path must be forestall with /
+            prefix. Template file locator is the URI formatted string. If
+            the file is missed, it use ``index.shtml' from current directory
+            as default value.
+
+    header  HTTP header uses as value by default before main content
+            template print (method html).
+
+                my $template = new TemplateM( -header => "Content-type: text/html; charset=UTF-8\n\n");
+                print $template->html;
 
     login and password
             User Login and user password are data for standard
@@ -164,10 +172,21 @@ DESCRIPTION
             missed the access to remote template file realizes simplified
             scheme, without basic HTTP-authorization.
 
-    cache   Cache is the absolute or relative path to directory for cache
-            files storage. This directory needs to have a permission to read
-            and write files. When cache is missed caching is disabled.
-            Caching on is recommended for faster module operations.
+    method  Request method points to method of remote HTTP/HTTPS access to
+            template page. Can take values: "GET", "HEAD", "PUT" or "POST".
+            HEAD methods can be used only for headers getting.
+
+    onutf8 or utf8
+            onutf8 flag turn UTF8 mode for access to a file. The flag allow
+            to get rid of a forced setting utf-8 flag for properties
+            template and work by method Encode::_utf8_on()
+
+    template
+            HTTP content (template). This attribute has to be defined when
+            template content is not able to get from a file or get it from
+            remote locations. E.g. it has to be defined when a template
+            selects from a database. Defining of this attribute means
+            disabling of precompile result caching!
 
     timeout Timeout is the period of cache file keeping in integer seconds.
             When the value is missed cache file "compiles" once and will be
@@ -178,18 +197,63 @@ DESCRIPTION
             version of the module value can be 0 or every positive number. 0
             is equivalent -1 of previous versions of the module.
 
-    header  HTTP header uses as value by default before main content
-            template print.
+    reqcode Request code is the pointer to the subroutine must be invoked
+            for HTTP::Request object after creation via method new.
 
-                my $template = new TemplateM( -header => "Content-type: text/html; charset=UTF-8\n\n");
-                print $template->html;
+            Sample:
 
-    template
-            HTTP content (template). This attribute has to be defined when
-            template content is not able to get from a file or get it from
-            remote locations. E.g. it has to be defined when a template
-            selects from a database. Defining of this attribute means
-            disabling of precompile result caching!
+                -reqcode => sub { 
+                    my $req = shift;
+                    ...
+                    $req-> ...
+                    ...
+                    return 1;
+                }
+
+    rescode Response code is the pointer to the subroutine must be invoked
+            for HTTP::Response after creation via calling
+            $ua->request($req).
+
+            Sample:
+
+                -rescode => sub { 
+                    my $res = shift;
+                    ...
+                    $res-> ...
+                    ...
+                    return 1;
+                }
+
+    uacode  UserAgent code is the pointer to the subroutine must be invoked
+            for LWP::UserAgent after creation via method new().
+
+            Sample:
+
+                -uacode => sub { 
+                    my $ua = shift;
+                    ...
+                    $ua-> ...
+                    ...
+                    return 1;
+                }
+
+    uaopts  UserAgent options is the pointer to the hash containing options
+            for defining parameters of UserAgent object's constructor. (See
+            LWP::UserAgent)
+
+            Example:
+
+                -uaopts => {
+                    agent                 => "Mozilla/4.0",
+                    max_redirect          => 10,
+                    requests_redirectable => ['GET','HEAD','POST'],
+                    protocols_allowed     => ['http', 'https'], # Required Crypt::SSLeay
+                    cookie_jar            => new HTTP::Cookies(
+                            file     => File::Spec->catfile("/foo/bar/_cookies.dat"),
+                            autosave => 1 
+                        ),
+                    conn_cache            => new LWP::ConnCache(),
+                }
 
   DEFAULT SCHEME METHODS (BASIC METHODS)
     It is enough to define the module without parameters for using of basic
@@ -207,7 +271,8 @@ DESCRIPTION
     label   Label - name will be replaced with appropriate value in tag <!--
             cgi: label -->
 
-    value   Value - Value, which CGI-script sets. Member of label
+    value   Value - Value, which CGI-script sets. Member of the label
+            manpage
 
    cast_loop
     Block labels modification (val labels)
@@ -224,7 +289,7 @@ DESCRIPTION
     Block finalizing
 
         $template->finalize(block_label);
-    
+
     Block finalizing uses for not-processed blocks deleting. You need use
     finalizing every time you use blockes.
 
@@ -324,6 +389,99 @@ DESCRIPTION
    html
     The method is completely equal to html method of default scheme.
 
+  EXAMPLE
+    In test.pl file:
+
+        use TemplateM 3.00 'galore';
+
+        my $tpl = new TemplateM(
+            -file   => 'test.tpl',
+            -asfile => 1,
+        );
+
+        $tpl->stash(
+            module  => (split(/\=/,"$tpl"))[0],
+            version => $tpl->VERSION,
+            scheme  => $tpl->scheme()." / ".$tpl->{module},
+            date    => scalar(localtime(time())),
+        );
+
+        my $row_box = $tpl->start('row');
+        foreach my $row ('A'..'F') {
+            $row_box->loop({});
+            my $col_box = $row_box->start('col');
+            foreach my $col (1...6) {
+                $col_box->loop( foo  => $row.$col );
+                $col_box->cast_if(div=>(
+                        ('A'..'F')[$col-1] ne $row
+                        &&
+                        ('A'..'F')[6-$col] ne $row
+                    ));
+            }
+            $col_box->finish;
+        }
+        $row_box->finish;
+
+        binmode STDOUT, ':raw';
+        print $tpl->output();
+
+    In test.tpl file:
+
+        **********************
+        *                    *
+        *  Simple text file  *
+        *                    *
+        **********************
+
+        Table
+        =====
+        <!-- do: row -->
+        +-----------------+
+        |<!-- do: col --><!-- if: div --><!-- val: foo --><!-- endif: div -->
+        <!-- else: div -->  <!-- endelse: div -->|<!-- loop: col --><!-- loop: row -->
+        +-----------------+
+
+        Data
+        ====
+
+        Module       : <!-- cgi: module -->
+        Version      : <!-- cgi: version -->
+        Scheme       : <!-- cgi: scheme -->
+        Current date : <!-- cgi: date -->
+
+    Result:
+
+        **********************
+        *                    *
+        *  Simple text file  *
+        *                    *
+        **********************
+
+        Table
+        =====
+
+        +-----------------+
+        |  |A2|A3|A4|A5|  |
+        +-----------------+
+        |B1|  |B3|B4|  |B6|
+        +-----------------+
+        |C1|C2|  |  |C5|C6|
+        +-----------------+
+        |D1|D2|  |  |D5|D6|
+        +-----------------+
+        |E1|  |E3|E4|  |E6|
+        +-----------------+
+        |  |F2|F3|F4|F5|  |
+        +-----------------+
+
+        Data
+        ====
+
+        Module       : TemplateM
+        Version      : 3.00
+        Scheme       : galore / GaloreWin32
+        Current date : Sat Dec 18 12:37:10 2010
+
   TEMPLATEM'S AND SSI DIRECTIVES
     The module can be used with SSI directives together, like in this
     shtml-sample:
@@ -345,7 +503,8 @@ BUGS
     Please report them.
 
 SEE ALSO
-    LWP, CGI
+    "LWP", "LWP::UserAgent", "HTTP::Request", "HTTP::Response",
+    "HTTP::Headers"
 
 DIAGNOSTICS
     The usual warnings if it cannot read or write the files involved.
@@ -383,6 +542,14 @@ HISTORY
 
     2.23 File access errors corrected
 
+    3.00 Changes:
+
+        * Full UTF8 support added
+        * Direct reading of template file from a disk added
+        * SSL (HTTPS) support added
+        * Error while getting template via LWP::Simple module fixed
+        * Ability of use UserAgent, Request and Response objects added (see libwww-perl)
+
 TODO
         * simultaneous multiple declared do-loop structure blocks processing.
 
@@ -394,5 +561,5 @@ AUTHOR
     Lepenkov Sergey (Serz Minus), "minus@mail333.com"
 
 COPYRIGHTS
-    Copyright (C) 1998-2008 D&D Corporation. All Rights Reserved
+    Copyright (C) 1998-2010 D&D Corporation. All Rights Reserved
 

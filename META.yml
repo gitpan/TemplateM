@@ -1,15 +1,26 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+--- #YAML:1.0
 name:         TemplateM
-version:      2.23
+version:      3.00
 version_from: TemplateM.pm
+abstract:     TemplateM - *ML templates processing module 
+author:
+    - Lepenkov Sergey (Serz Minus), C<minus@mail333.com>
 installdirs:  perl
 requires:
-    File::Spec:                    0.82
-    HTTP::Headers:                 1
-    HTTP::Request:                 1
-    LWP::Simple:                   1
-    LWP::UserAgent:                1
-
+    File::Spec:      0.82
+    LWP:             5.80
+    LWP::UserAgent:  5.80
+    HTTP::Headers:   5.80
+    HTTP::Request:   5.80
+    HTTP::Response:  5.80
 distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.30
+configure_requires:
+    ExtUtils::MakeMaker: 6.40
+build_requires:
+    ExtUtils::MakeMaker: 6.40
+    Test::More:          0.80
+generated_by: ExtUtils::MakeMaker version 6.40
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+license: perl

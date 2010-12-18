@@ -3,10 +3,13 @@ TemplateM/Galore.pm
 TemplateM/GaloreWin32.pm
 TemplateM/Simple.pm
 TemplateM/Util.pm
-examples/xmpl1.cgi
 Changes
 Makefile.PL
 MANIFEST
 README
-t/1.t
+t/01-use-default.t
+t/02-use-galore.t
+t/03-stash.t
+t/04-loop.t
+t/05-ifelse.t
 META.yml
