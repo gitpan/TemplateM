@@ -5,12 +5,12 @@ use strict;
 #
 # TemplateM - *ML templates processing module 
 #
-# Version: 3.00 
+# Version: 3.01 
 # Date   : 14.12.2010
 #
-# $Revision: 1.2 $
+# $Revision: 1.1 $
 #
-# $Id: TemplateM.pm,v 1.2 2010/12/18 17:59:15 abalama Exp $
+# $Id: TemplateM.pm,v 1.1 2010/12/23 08:24:03 abalama Exp $
 #
 
 =head1 NAME
@@ -19,16 +19,16 @@ TemplateM - *ML templates processing module
 
 =head1 VERSION
 
-Version 2.23 
+Version 3.01 
 
-26 May 2008
+14 Dec 2010
 
 =head1 SYNOPSIS
 
     use TemplateM;
-    use TemplateM 3.00;
+    use TemplateM 3.01;
     use TemplateM 'galore';
-    use TemplateM 3.00 'galore';
+    use TemplateM 3.01 'galore';
 
     $template = new TemplateM(
             -file => 'http://localhost/foo.shtml',
@@ -432,7 +432,7 @@ The method is completely equal to html method of default scheme.
 
 In test.pl file:
 
-    use TemplateM 3.00 'galore';
+    use TemplateM 3.01 'galore';
 
     my $tpl = new TemplateM(
         -file   => 'test.tpl',
@@ -518,7 +518,7 @@ Result:
     ====
 
     Module       : TemplateM
-    Version      : 3.00
+    Version      : 3.01
     Scheme       : galore / GaloreWin32
     Current date : Sat Dec 18 12:37:10 2010
 
@@ -593,6 +593,8 @@ The usual warnings if it cannot read or write the files involved.
     * Error while getting template via LWP::Simple module fixed
     * Ability of use UserAgent, Request and Response objects added (see libwww-perl)
 
+3.01 Files in the distribution package are changed
+
 =head1 TODO
 
     * simultaneous multiple declared do-loop structure blocks processing.
@@ -612,7 +614,7 @@ Copyright (C) 1998-2010 D&D Corporation. All Rights Reserved
 =cut
 
 use vars qw($VERSION);
-our $VERSION = '3.00';
+our $VERSION = '3.01';
 our @ISA;
 
 use Encode;

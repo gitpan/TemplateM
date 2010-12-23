@@ -8,6 +8,7 @@ WriteMakefile(
     'ABSTRACT_FROM'         => 'TemplateM.pm',
     'PREREQ_PM' => {
            'File::Spec'     => 0.82,
+           'Test::More'     => 0.94,
            'LWP'            => 5.80,
            'LWP::UserAgent' => 5.80,
            'HTTP::Headers'  => 5.80,

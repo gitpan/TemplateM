@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:         TemplateM
-version:      3.00
+version:      3.01
 version_from: TemplateM.pm
 abstract:     TemplateM - *ML templates processing module 
 author:
@@ -18,7 +18,7 @@ configure_requires:
     ExtUtils::MakeMaker: 6.40
 build_requires:
     ExtUtils::MakeMaker: 6.40
-    Test::More:          0.80
+    Test::More:          0.94
 generated_by: ExtUtils::MakeMaker version 6.40
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html

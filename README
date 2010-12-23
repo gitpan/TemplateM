@@ -2,15 +2,15 @@ NAME
     TemplateM - *ML templates processing module
 
 VERSION
-    Version 2.23
+    Version 3.01
 
-    26 May 2008
+    14 Dec 2010
 
 SYNOPSIS
     use TemplateM;
-    use TemplateM 3.00;
+    use TemplateM 3.01;
     use TemplateM 'galore';
-    use TemplateM 3.00 'galore';
+    use TemplateM 3.01 'galore';
 
     $template = new TemplateM(
             -file => 'http://localhost/foo.shtml',
@@ -392,7 +392,7 @@ DESCRIPTION
   EXAMPLE
     In test.pl file:
 
-        use TemplateM 3.00 'galore';
+        use TemplateM 3.01 'galore';
 
         my $tpl = new TemplateM(
             -file   => 'test.tpl',
@@ -478,7 +478,7 @@ DESCRIPTION
         ====
 
         Module       : TemplateM
-        Version      : 3.00
+        Version      : 3.01
         Scheme       : galore / GaloreWin32
         Current date : Sat Dec 18 12:37:10 2010
 
@@ -549,6 +549,8 @@ HISTORY
         * SSL (HTTPS) support added
         * Error while getting template via LWP::Simple module fixed
         * Ability of use UserAgent, Request and Response objects added (see libwww-perl)
+
+    3.01 Files in the distribution package are changed
 
 TODO
         * simultaneous multiple declared do-loop structure blocks processing.

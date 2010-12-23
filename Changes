@@ -39,3 +39,5 @@ Revision history for Perl extension template.
     * SSL (HTTPS) support added
     * Error while getting template via LWP::Simple module fixed
     * Ability of use UserAgent, Request and Response objects added (see libwww-perl)
+
+3.01 Files in the distribution package are changed
