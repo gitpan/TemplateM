@@ -1,9 +1,13 @@
-package TemplateM::Util;
+package TemplateM::Util; # $Id: Util.pm 2 2013-04-02 10:51:49Z abalama $
 use strict;
 
 =head1 NAME
 
 TemplateM::Util - Internal utilities used by TemplateM module
+
+=head1 VERSION
+
+Version 2.21
 
 =head1 SYNOPSIS
 
@@ -20,28 +24,17 @@ Copyright 1995-1998, Lincoln D. Stein.  All rights reserved.
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
-Address bug reports and comments to: lstein@cshl.org.  When sending
-bug reports, please provide the version of CGI.pm, the version of
-Perl, the name and version of your Web server, and the name and
-version of the operating system you are using.  If the problem is even
-remotely browser dependent, please provide information about the
-affected browers as well.
-
 =head1 SEE ALSO
 
 L<CGI>
 
 =cut
 
-use Exporter;
-use vars qw($VERSION);
-our $VERSION = 2.20;
-
 use base qw/Exporter/;
+use vars qw($VERSION);
+our $VERSION = 2.21;
 
-our @EXPORT = qw(
-        read_attributes
-    );
+our @EXPORT = qw/read_attributes/;
 
 sub read_attributes {
     my($order,@param) = @_;

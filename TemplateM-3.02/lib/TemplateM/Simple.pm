@@ -1,25 +1,20 @@
-package TemplateM::Simple;
+package TemplateM::Simple; # $Id: Simple.pm 2 2013-04-02 10:51:49Z abalama $
 use strict;
 
-use Exporter;
-use vars qw($VERSION);
-our $VERSION = 2.20;
-
 use base qw/Exporter/;
+use vars qw($VERSION);
+our $VERSION = 2.21;
+
 use TemplateM::Util;
+use Carp;
 
-our @EXPORT = qw(
-        html
-    );
+our @EXPORT = qw/html/;
 
-#
-# Methods
-#
 sub cast {
     my $self = shift;
     my $hr   = $_[0]; 
 
-    die("[cast] Incorrect call of method \"CAST\"") unless $hr;
+    croak("[cast] Incorrect call of method \"cast\"") unless defined($hr);
 
     unless (ref($hr) eq "HASH") {
         $hr = {@_};
@@ -27,14 +22,13 @@ sub cast {
     
     $self->{template}=~s/<!--\s*cgi:\s*(\S+?)\s*-->/_exec_directive($hr, $1)/ieg;
 }
-sub stash { cast(@_) }
-
+sub stash { goto &cast }
 sub cast_loop {
     my $self = shift;
     my $name = shift || '';
     my $ar = $_[0];
     
-    die("[cast_loop] Incorrect call of method \"CAST_LOOP\"") unless ($name);
+    croak("[cast_loop] Incorrect call of method \"cast_loop\"") unless ($name);
    
     if (ref($ar) eq "HASH") {
        $ar=[$ar];
@@ -56,21 +50,21 @@ sub cast_loop {
    
     $self->{template} =~ s/(<!--\s*do:\s*$name\s*-->).*(<!--\s*loop:\s*$name\s*-->)/$out$1$pattern_copy$2/s;
 }
-sub loop { cast_loop(@_) }
+sub loop { goto &cast_loop }
 sub finalize {
     my $self = shift;
     my $name = shift;
     
-    die("[finalize] Incorrect call of method \"FINALIZE\"") unless ($name);
+    croak("[finalize] Incorrect call of method \"finalize\"") unless ($name);
     
     $self->{template} =~ s/<!--\s*do:\s*$name\s*-->.*<!--\s*loop:\s*$name\s*-->//s;
 }
-sub finish { finalize (@_) }
+sub finish { goto &finalize }
 sub cast_if {
     my $self = shift;
     my $name = shift;
     my $predicate = shift || 0;
-    die("[cast_if] Incorrect call of method \"CAST_IF\"") unless ($name);
+    croak("[cast_if] Incorrect call of method \"cast_if\"") unless ($name);
     
     if ($predicate) {
        $self->{template} =~ s/<!--\s*if:\s*$name\s*-->(.*)<!--\s*end_?if:\s*$name\s*-->/$1/s;
@@ -80,18 +74,14 @@ sub cast_if {
        $self->{template} =~ s/<!--\s*if:\s*$name\s*-->.*<!--\s*end_?if:\s*$name\s*-->//s;
     }
 }
-sub ifelse { cast_if(@_) }
-
+sub ifelse { goto &cast_if }
 sub html {
     my $self = shift;
     my $header = $self->{header} || '';
     ($header) = read_attributes([['HEAD','HEADER']],@_) if (defined $_[0]);
     return $header.$self->{template};
 }
-sub output { html(@_) }
-#
-# Internal functions
-#
+sub output { goto &html }
 sub _exec_directive {
     my ($hr, $directive) = @_;
     
@@ -101,7 +91,5 @@ sub _exec_directive {
         return '';
     }
 }
-
-
-
 1;
+

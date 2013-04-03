@@ -1,13 +1,13 @@
 #########################################################################
 #
-# Lepenkov Sergey (Serz Minus), <minus@mail333.com>
+# Serz Minus (Lepenkov Sergey), <minus@mail333.com>
 #
-# Copyright (C) 1998-2010 D&D Corporation. All Rights Reserved
+# Copyright (C) 1998-2013 D&D Corporation. All Rights Reserved
 # 
 # This is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself.
 #
-# $Id: 04-loop.t,v 1.1 2010/12/23 08:24:03 abalama Exp $
+# $Id: 04-loop.t 2 2013-04-02 10:51:49Z abalama $
 #
 #########################################################################
 

@@ -1,31 +1,26 @@
-package TemplateM::Galore;
+package TemplateM::GaloreWin32; # $Id: GaloreWin32.pm 2 2013-04-02 10:51:49Z abalama $
 use strict;
 
-use Exporter;
-use vars qw($VERSION);
-our $VERSION = 2.20;
-
 use base qw/Exporter/;
+use vars qw($VERSION);
+our $VERSION = 2.21;
+
 use TemplateM::Util;
+use Carp;
 
-our @EXPORT = qw(
-        html
-    );
+our @EXPORT = qw/html/;
 
-#
-# Methods
-#
 sub start {
     my $self = shift;
     my $label = shift;
-    die("[start] Incorrect call of method \"START\"") unless (defined($label));
+    
+    croak("[start] Incorrect call of method \"start\"") unless (defined($label));
 
     my $tpl = '';
-    $tpl = $2 if $self->{work} =~ m/<!--\s*do:\s*($label)\s*-->(.*?)<!--\s*loop:\s*\1\s*-->/s;
-   
     my $wrk = '';
-   
-    my $stk = '';
+    my $stk = [];
+
+    $tpl = $2 if $self->{work} =~ m/<!--\s*do:\s*($label)\s*-->(.*?)<!--\s*loop:\s*\1\s*-->/s;
 
     return bless {
         template => $tpl,
@@ -36,11 +31,11 @@ sub start {
         tf       => 1
     };
 }
-
 sub loop {
     my $self = shift;
     my $hr  = $_[0];
-    die("[loop] Incorrect call of method \"LOOP\"") unless (defined($hr));
+    
+    croak("[loop] Incorrect call of method \"loop\"") unless (defined($hr));
     
     if (defined($hr) && (ref($hr) ne "HASH")) {
         if (ref($hr) eq "ARRAY") {
@@ -50,7 +45,7 @@ sub loop {
         }
     }
 
-    $self->{stackout} .= $self->{work};
+    push @{$self->{stackout}}, $self->{work} if $self->{work} ne '';
   
     my $wrk = $self->{template};
    
@@ -58,29 +53,29 @@ sub loop {
    
     $self->{work} = $wrk
 }
-
 sub finish {
     my $self = shift;
 
-    $self->{stackout} .= $self->{work};
-   
+    push @{$self->{stackout}}, $self->{work} if defined $self->{work} && $self->{work} ne '';   
+
     $self->{work} = '';
    
     my $label = $self->{label};
-    my $stack = $self->{stackout};
+    my $stacklink = $self->{stackout};
    
     if ($self->{pobj}->{tf}) {
-        $self->{pobj}->{work} =~ s/<!--\s*do:\s*($label)\s*-->(.*?)<!--\s*loop:\s*\1\s*-->/$stack/s
+        my $stackdata  = join "", @$stacklink;
+        $self->{pobj}->{work} =~ s/<!--\s*do:\s*($label)\s*-->(.*?)<!--\s*loop:\s*\1\s*-->/$stackdata/s
     } else {
-        $self->{pobj}->{looparr}->{$self->{label}} = $stack
+        $self->{pobj}->{looparr}->{$self->{label}} = $stacklink
     }
 }
-sub finalize { finish(@_) }
+sub finalize { goto &finish }
 sub cast {
     my $self = shift;
     my $hr   = $_[0];
     
-    die("[cast] Incorrect call of method \"CAST\"") unless $hr;
+    croak("[cast] Incorrect call of method \"cast\"") unless (defined $hr);
 
     unless (ref($hr) eq "HASH") {
         $hr = {@_};
@@ -88,13 +83,13 @@ sub cast {
     
     $self->{work} =~ s/<!--\s*cgi:\s*(\S+?)\s*-->/_exec_directive($hr, $1, 'cgi')/ieg;
 }
-sub stash { cast(@_) }
+sub stash { goto &cast }
 sub ifelse {
     my $self = shift;
     my $label = shift || '';
     my $predicate = shift || 0;
 
-    die("[efelse] Incorrect call of method \"IFELSE\"") unless (defined($label));
+    croak("[efelse] Incorrect call of method \"ifelse\"") unless (defined($label));
     
     if ($predicate) {
        $self->{work} =~ s/<!--\s*if:\s*($label)\s*-->(.*?)<!--\s*end_?if:\s*\1\s*-->/$2/igs;
@@ -103,18 +98,21 @@ sub ifelse {
        $self->{work} =~ s/<!--\s*else:\s*($label)\s*-->(.*?)<!--\s*end_?else:\s*\1\s*-->/$2/igs;
        $self->{work} =~ s/<!--\s*if:\s*($label)\s*-->.*?<!--\s*end_?if:\s*\1\s*-->//igs;
     }
-
 }
-sub cast_if { ifelse(@_) }
+sub cast_if { goto &ifelse }
 sub output {
     my $self = shift;
     my $property = shift || 'stackout';
 
     if (! $self->{tf} and $property eq 'stackout') {
         $self->{work} =~ s/<!--\s*do:\s*(\S+?)\s*-->(.*?)<!--\s*loop:\s*\1\s*-->/_analize($self->{looparr},$1)/egs;
-        $self->{stackout} = $self->{work};
+        $self->{stackout} = [$self->{work}];
     }
-    return $self->{$property} || ''
+    if ($property eq 'stackout') {
+        return join "", @{$self->{stackout}}
+    } else {
+        return defined ($self->{$property}) ? $self->{$property} : ''    
+    }
 }
 sub html {
     my $self = shift;
@@ -123,9 +121,6 @@ sub html {
 
     return $header . $self->output()
 }
-#
-# Internal functions
-#
 sub _exec_directive {
     my ($hr, $directive, $sig) = @_;
     
@@ -138,9 +133,11 @@ sub _exec_directive {
 sub _analize {
     my ($hr, $directive) = @_;
     if (defined($hr->{$directive})) {
-        return $hr->{$directive}
+        my $strd = $hr->{$directive}; 
+        return join "", @$strd;
     } 
     return ''
     
 }
 1;
+

@@ -1,4 +1,4 @@
-Revision history for Perl extension template.
+# Version/Revision history.
 
 1.00 Initial release
 
@@ -6,8 +6,7 @@ Revision history for Perl extension template.
 
 1.11 Inner method's interface had structured
 
-1.21 New time managment for templates caching. You can set how long
-    template file will be cached before renew.
+1.21 New time managment for templates caching. You can set how long template file will be cached before renew. 
 
 2.00 New abilities
 
@@ -41,3 +40,11 @@ Revision history for Perl extension template.
     * Ability of use UserAgent, Request and Response objects added (see libwww-perl)
 
 3.01 Files in the distribution package are changed
+
+3.02 Tue Apr  2 12:50:02 2013 MSK
+
+    * Documentation modified
+    * Bug #137 Fixed!
+    * Added test 06-void.t for processing void('') and void(0) templates.
+    * Added URI module support
+
