@@ -1,4 +1,4 @@
-package TemplateM; # $Id: TemplateM.pm 7 2013-04-03 08:11:21Z abalama $
+package TemplateM; # $Id: TemplateM.pm 10 2013-07-08 14:37:29Z abalama $
 use strict;
 
 =head1 NAME
@@ -7,13 +7,12 @@ TemplateM - *ML templates processing module
 
 =head1 VERSION
 
-Version 3.02
+Version 3.03
 
 =head1 SYNOPSIS
 
     use TemplateM;
-    use TemplateM 'galore';
-    use TemplateM 3.02 'galore'; # default
+    use TemplateM 'simple';
 
     my $template = new TemplateM(
             -url => 'http://localhost/foo.shtml',
@@ -589,7 +588,7 @@ conditions as Perl itself.
 =cut
 
 use vars qw($VERSION);
-our $VERSION = 3.02;
+our $VERSION = 3.03;
 our @ISA;
 
 use Encode;
@@ -625,13 +624,12 @@ my %modules = (
         galore  => ($os eq 'MSWin32' or $os eq 'NetWare') ? "GaloreWin32" : "Galore",
         simple  => "Simple",
     );
-$modules{default} = $modules{galore}; # Added 02.04.2013
 my $module;
 
 sub import {
     my ($class, @args) = @_;
     my $mdl = shift(@args) || 'default';
-    $module = $modules{lc($mdl)} || $modules{default};
+    $module = $modules{lc($mdl)} || $modules{galore};
     require "TemplateM/$module.pm";
     @ISA = ("TemplateM::$module");
 }
@@ -925,8 +923,6 @@ sub _get_uri {
     return $url;
 }
 
-
 1;
 
 __END__
-

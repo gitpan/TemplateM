@@ -7,10 +7,10 @@
 # This is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself.
 #
-# $Id: 01-use-default.t 2 2013-04-02 10:51:49Z abalama $
+# $Id: 01-use-default.t 10 2013-07-08 14:37:29Z abalama $
 #
 #########################################################################
 
 use Test::More tests => 2;
 BEGIN { use_ok('TemplateM'); };
-is(TemplateM->VERSION,'3.02','version checking');
+is(TemplateM->VERSION,'3.03','version checking');

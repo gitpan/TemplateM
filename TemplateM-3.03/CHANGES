@@ -48,3 +48,7 @@
     * Added test 06-void.t for processing void('') and void(0) templates.
     * Added URI module support
 
+3.03 Mon Jul  8 18:26:16 2013 MSK
+
+    * Documentation modified
+    * Bug #281 Fixed!
